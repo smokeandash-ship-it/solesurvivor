@@ -11,47 +11,70 @@
   input{width:100%;padding:9px 13px;background:#0d160a;border:1px solid #2e4428;color:#e8f5e0;border-radius:8px;font-size:13px;font-family:monospace;outline:none}
   input::placeholder{color:#3a5030}
   .card{background:#111a0d;border:1.5px solid #253320;border-radius:14px;padding:18px 20px}
-  .btn{width:100%;padding:10px 0;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:monospace;border:none;transition:opacity 0.15s}
+  .btn{width:100%;padding:10px 0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:monospace;border:none;transition:opacity 0.15s}
   .btn-primary{background:#b6f542;color:#0d160a}
   .btn-primary:hover{opacity:0.88}
   .btn-secondary{background:transparent;border:1px solid #2e4428;color:#8a9e80}
   .btn-secondary:hover{background:#1a2416}
   .btn:disabled{opacity:0.4;cursor:not-allowed}
-  a{color:#b6f542}
-  code{background:#0d160a;padding:2px 7px;border-radius:4px;color:#b6f542;font-size:11px;border:1px solid #1e3018}
-  label{font-size:10px;color:#4a5e40;letter-spacing:2px;display:block;margin-bottom:4px}
-  .gap{display:flex;flex-direction:column;gap:10px}
-  .row{display:flex;gap:8px}
+  .btn-strava{background:#fc4c02;color:#fff;font-size:15px;padding:14px 0;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:10px}
+  .btn-strava:hover{opacity:0.9}
+  .card{background:#111a0d;border:1.5px solid #253320;border-radius:14px;padding:18px 20px}
   .shoe-card{background:#111a0d;border:1.5px solid #253320;border-radius:14px;padding:14px 16px;cursor:pointer;transition:all 0.15s;margin-bottom:8px}
   .shoe-card.active{border-color:#b6f542;background:#142010}
   .run-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a2416;align-items:center}
-  .tag{font-size:9px;font-family:monospace}
+  label{font-size:10px;color:#4a5e40;letter-spacing:2px;display:block;margin-bottom:4px}
+  .gap{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;gap:8px}
   #sync-msg{font-size:10px;color:#b6f542;font-family:monospace;min-height:14px;text-align:right}
 </style>
 </head>
 <body>
 
-<!-- ── SETUP ─────────────────────────────────────────────────── -->
-<div id="setup" style="max-width:480px;margin:0 auto">
-  <div style="margin-bottom:28px">
-    <div style="font-size:11px;color:#8a9e80;letter-spacing:4px">SHOE TRACKER</div>
-    <div style="font-size:42px;font-family:'Bebas Neue',cursive;letter-spacing:2px;line-height:1">SOLESURVIVOR</div>
+<!-- ── LANDING / CONNECT ──────────────────────────────────────── -->
+<div id="landing" style="display:none;max-width:420px;margin:80px auto;text-align:center">
+  <div style="margin-bottom:32px">
+    <div style="font-size:12px;color:#4a5e40;letter-spacing:5px;margin-bottom:8px">SHOE MILEAGE TRACKER</div>
+    <div style="font-size:64px;font-family:'Bebas Neue',cursive;letter-spacing:3px;line-height:1;color:#e8f5e0">SOLE<br/>SURVIVOR</div>
+    <div style="margin-top:16px;font-size:12px;color:#4a5e40;line-height:1.8">
+      Track your shoe mileage.<br/>
+      Know exactly when to retire them.
+    </div>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:24px">
-    <div id="b0" style="height:4px;flex:1;border-radius:2px;background:#b6f542;transition:background 0.3s"></div>
-    <div id="b1" style="height:4px;flex:1;border-radius:2px;background:#1e2a1a;transition:background 0.3s"></div>
-    <div id="b2" style="height:4px;flex:1;border-radius:2px;background:#1e2a1a;transition:background 0.3s"></div>
+
+  <!-- ring illustration -->
+  <div style="margin:0 auto 32px;width:140px;height:140px;position:relative">
+    <svg width="140" height="140" viewBox="0 0 140 140">
+      <circle cx="70" cy="70" r="58" fill="none" stroke="#1e2a1a" stroke-width="10"/>
+      <circle cx="70" cy="70" r="58" fill="none" stroke="#b6f542" stroke-width="10"
+        stroke-dasharray="218 365" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <span style="font-size:30px;font-family:'Bebas Neue',cursive;color:#b6f542;line-height:1">380</span>
+      <span style="font-size:9px;color:#8a9e80;letter-spacing:2px">MI LEFT</span>
+    </div>
   </div>
-  <div class="card">
-    <div id="s-title" style="font-size:11px;color:#b6f542;letter-spacing:2px;margin-bottom:14px"></div>
-    <div id="s-body"></div>
+
+  <button class="btn btn-strava" onclick="connectStrava()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+    Connect with Strava
+  </button>
+  <div id="landing-msg" style="margin-top:12px;font-size:11px;color:#4a5e40;min-height:16px"></div>
+  <div style="margin-top:24px;font-size:10px;color:#253320;line-height:1.8">
+    Your Strava data never leaves your browser.<br/>
+    Walk runs from Runna are synced automatically.
   </div>
+</div>
+
+<!-- ── CONNECTING SCREEN ─────────────────────────────────────── -->
+<div id="connecting" style="display:none;max-width:420px;margin:80px auto;text-align:center">
+  <div style="font-size:42px;font-family:'Bebas Neue',cursive;letter-spacing:2px;margin-bottom:16px">CONNECTING...</div>
+  <div style="font-size:12px;color:#4a5e40">Finishing Strava authorization</div>
 </div>
 
 <!-- ── MAIN APP ───────────────────────────────────────────────── -->
 <div id="app" style="display:none;max-width:860px;margin:0 auto">
 
-  <!-- header -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
     <div>
       <div style="font-size:10px;color:#4a5e40;letter-spacing:4px">SHOE TRACKER</div>
@@ -73,22 +96,22 @@
         <span style="font-size:9px;color:#4a5e40;letter-spacing:3px">MY SHOES</span>
         <button class="btn btn-primary" onclick="toggleAddShoe()" style="width:auto;padding:4px 14px;font-size:9px;border-radius:20px">+ ADD</button>
       </div>
-      <div id="add-form" style="display:none" class="card gap" style="margin-bottom:10px">
-        <div style="font-size:9px;color:#8a9e80;letter-spacing:2px">NEW SHOE</div>
-        <div><label>SHOE NAME</label><input id="f-name" placeholder="e.g. Asics Sonicblast"/></div>
-        <div><label>START DATE</label><input type="date" id="f-date"/></div>
-        <div class="row" style="margin-top:4px">
-          <button class="btn btn-primary" onclick="addShoe()">Add</button>
-          <button class="btn btn-secondary" onclick="toggleAddShoe()">Cancel</button>
+      <div id="add-form" style="display:none;background:#111a0d;border:1.5px solid #253320;border-radius:14px;padding:16px 18px;margin-bottom:10px">
+        <div style="font-size:9px;color:#8a9e80;letter-spacing:2px;margin-bottom:10px">NEW SHOE</div>
+        <div class="gap">
+          <div><label>SHOE NAME</label><input id="f-name" placeholder="e.g. Asics Sonicblast"/></div>
+          <div><label>START DATE</label><input type="date" id="f-date"/></div>
+          <div class="row" style="margin-top:4px">
+            <button class="btn btn-primary" onclick="addShoe()" style="font-size:11px">Add</button>
+            <button class="btn btn-secondary" onclick="toggleAddShoe()" style="font-size:11px">Cancel</button>
+          </div>
         </div>
       </div>
       <div id="shoe-list"></div>
     </div>
 
-    <!-- detail -->
+    <!-- detail panel -->
     <div class="gap">
-
-      <!-- circle card -->
       <div class="card" style="text-align:center">
         <div id="d-name" style="font-size:10px;color:#4a5e40;letter-spacing:3px;margin-bottom:18px"></div>
         <div style="position:relative;width:160px;height:160px;margin:0 auto">
@@ -112,156 +135,128 @@
         </div>
       </div>
 
-      <!-- run log -->
       <div class="card">
         <div style="font-size:9px;color:#4a5e40;letter-spacing:3px;margin-bottom:12px">ACTIVITY LOG</div>
         <div id="run-log" style="max-height:300px;overflow-y:auto">
           <div style="color:#253320;font-size:12px;text-align:center;padding:24px">Sync Strava to see your runs!</div>
         </div>
       </div>
-
     </div>
   </div>
-  <div style="margin-top:24px;font-size:9px;color:#1e2a1a;text-align:center;letter-spacing:2px">DATA SAVED LOCALLY IN YOUR BROWSER · RUNS PULLED FROM STRAVA VIA RUNNA</div>
+
+  <div style="margin-top:24px;font-size:9px;color:#1e2a1a;text-align:center;letter-spacing:2px">
+    SOLESURVIVOR · DATA SAVED IN YOUR BROWSER · RUNS PULLED FROM STRAVA VIA RUNNA
+  </div>
 </div>
 
 <script>
-// ── storage ────────────────────────────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const CLIENT_ID     = '218943';
+const CLIENT_SECRET = 'f56f845fa239384fc51e60c598d732a654198fd4';
+const REDIRECT_URI  = 'https://smokeandash-ship-it.github.io/solesurvivor';
+const AUTH_URL      = `https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&approval_prompt=auto&scope=activity:read_all`;
+
 const M2MI = 1609.34, MAX = 500;
-const sv = (k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v))}catch{} };
-const ld = (k,d)=>{ try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d} };
-const m2mi = m => m/M2MI;
+const sv = (k,v) => { try{localStorage.setItem(k,JSON.stringify(v))}catch{} };
+const ld = (k,d) => { try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d} };
+const m2mi = m => m / M2MI;
 
-let shoes    = ld('ss_shoes',   [{id:1,name:'Asics Sonicblast',startDate:new Date().toISOString().slice(0,10),manualRuns:[]}]);
-let acts     = ld('ss_acts',    []);
-let selId    = shoes[0]?.id;
-let clientId = ld('strava_cid', '');
-let clientSec= ld('strava_csec','');
+let shoes  = ld('ss_shoes', [{id:1, name:'Asics Sonicblast', startDate:new Date().toISOString().slice(0,10), manualRuns:[]}]);
+let acts   = ld('ss_acts',  []);
+let selId  = shoes[0]?.id;
 
-// ── SETUP ──────────────────────────────────────────────────────────────────
-const STEPS = [
-  {
-    t:'STEP 1 — CREATE YOUR STRAVA API APP',
-    b:`<p style="color:#8a9e80;font-size:12px;line-height:1.8;margin-bottom:14px">
-        You only need to do this once. It takes about 2 minutes.
-       </p>
-       <ol style="color:#c8e5b8;font-size:13px;line-height:2.4;padding-left:20px">
-         <li>Go to <a href="https://www.strava.com/settings/api" target="_blank">strava.com/settings/api</a> and log in</li>
-         <li>Name it anything (e.g. <b style="color:#b6f542">SoleSurvivor</b>), category <b style="color:#b6f542">Other</b></li>
-         <li>Website → <code>https://localhost</code></li>
-         <li>Authorization Callback Domain → <code>localhost</code></li>
-         <li>Upload any image as icon if prompted, then click Create</li>
-       </ol>
-       <button class="btn btn-primary" onclick="gostep(1)" style="margin-top:18px">I have my Client ID & Secret →</button>`
-  },
-  {
-    t:'STEP 2 — ENTER YOUR CREDENTIALS',
-    b:`<div class="gap">
-        <p style="color:#8a9e80;font-size:12px;line-height:1.7">Saved only in this browser. Never sent anywhere except Strava.</p>
-        <div><label>CLIENT ID</label><input id="i-cid" placeholder="e.g. 12345"/></div>
-        <div><label>CLIENT SECRET</label><input id="i-csec" type="password" placeholder="Long string of letters and numbers"/></div>
-        <div class="row" style="margin-top:6px">
-          <button class="btn btn-secondary" onclick="gostep(0)">← Back</button>
-          <button class="btn btn-primary" onclick="saveCreds()">Next →</button>
-        </div>
-       </div>`
-  },
-  {
-    t:'STEP 3 — CONNECT TO STRAVA',
-    b:`<div class="gap">
-        <p style="color:#8a9e80;font-size:12px;line-height:1.8">
-          Click the orange button to open Strava's authorization page in a new tab.
-          Log in and click <b style="color:#e8f5e0">Authorize</b>.
-        </p>
-        <button class="btn" onclick="openAuth()" style="background:#fc4c02;color:#fff;font-size:13px">🔗 Open Strava Authorization</button>
-        <p style="color:#8a9e80;font-size:12px;line-height:1.8">
-          Your browser will redirect to a page that won't load — <b style="color:#e8f5e0">that's normal!</b><br/>
-          Copy the full URL from your address bar and paste it below:
-        </p>
-        <div><label>PASTE REDIRECT URL HERE</label><input id="i-code" placeholder="https://localhost/?state=&code=abc123..."/></div>
-        <div id="err" style="color:#f54242;font-size:12px;font-family:monospace;min-height:16px"></div>
-        <div class="row">
-          <button class="btn btn-secondary" onclick="gostep(1)">← Back</button>
-          <button class="btn btn-primary" id="conn-btn" onclick="connectStrava()">Connect Strava ✓</button>
-        </div>
-       </div>`
-  }
-];
-
-let curStep = 0;
-function gostep(n){
-  curStep = n;
-  document.getElementById('s-title').textContent = STEPS[n].t;
-  document.getElementById('s-body').innerHTML = STEPS[n].b;
-  [0,1,2].forEach(i=>document.getElementById('b'+i).style.background=i<=n?'#b6f542':'#1e2a1a');
-  if(n===1){
-    document.getElementById('i-cid').value  = clientId;
-    document.getElementById('i-csec').value = clientSec;
-  }
+// ── OAUTH FLOW ────────────────────────────────────────────────────────────
+function connectStrava() {
+  window.location.href = AUTH_URL;
 }
 
-function saveCreds(){
-  clientId  = (document.getElementById('i-cid').value||'').trim();
-  clientSec = (document.getElementById('i-csec').value||'').trim();
-  if(!clientId||!clientSec) return alert('Please fill in both fields.');
-  sv('strava_cid',clientId); sv('strava_csec',clientSec);
-  gostep(2);
-}
-
-function openAuth(){
-  const url=`https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=https://localhost&approval_prompt=force&scope=activity:read_all`;
-  window.open(url,'_blank');
-}
-
-async function connectStrava(){
-  const raw = (document.getElementById('i-code').value||'').trim();
-  const match = raw.match(/[?&]code=([^&]+)/);
-  const code = match ? match[1] : raw;
-  if(!code){ document.getElementById('err').textContent='Please paste the redirect URL first.'; return; }
-  const btn = document.getElementById('conn-btn');
-  btn.textContent='Connecting...'; btn.disabled=true;
-  document.getElementById('err').textContent='';
-  try{
-    const res = await fetch('https://www.strava.com/oauth/token',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({client_id:clientId,client_secret:clientSec,code,grant_type:'authorization_code'})
+async function handleOAuthCallback(code) {
+  show('connecting');
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code'
+      })
     });
     const d = await res.json();
-    if(d.access_token){
-      sv('strava_tok',{access_token:d.access_token,refresh_token:d.refresh_token,expires_at:d.expires_at});
-      sv('strava_ath',{name:(d.athlete?.firstname||'')+' '+(d.athlete?.lastname||'')});
+    if (d.access_token) {
+      sv('strava_tok', { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at });
+      sv('strava_ath', { name: (d.athlete?.firstname||'') + ' ' + (d.athlete?.lastname||'') });
+      // clean the URL so code doesn't linger
+      window.history.replaceState({}, document.title, window.location.pathname);
       showApp();
     } else {
-      document.getElementById('err').textContent = d.message||'Authorization failed — paste the URL again or go back and re-authorize.';
-      btn.textContent='Connect Strava ✓'; btn.disabled=false;
+      show('landing');
+      document.getElementById('landing-msg').textContent = 'Authorization failed — please try again.';
     }
-  }catch(e){
-    document.getElementById('err').textContent='Network error: '+e.message;
-    btn.textContent='Connect Strava ✓'; btn.disabled=false;
+  } catch(e) {
+    show('landing');
+    document.getElementById('landing-msg').textContent = 'Network error — please try again.';
   }
 }
 
-// ── MAIN APP ───────────────────────────────────────────────────────────────
-function showApp(){
-  document.getElementById('setup').style.display='none';
-  document.getElementById('app').style.display='block';
-  const ath = ld('strava_ath',{});
-  if(ath.name) document.getElementById('athlete').textContent=ath.name.toUpperCase()+' · STRAVA CONNECTED';
-  renderShoes(); renderDetail();
+async function refreshIfNeeded() {
+  let tok = ld('strava_tok', null);
+  if (!tok) return null;
+  if (Date.now() / 1000 < tok.expires_at - 60) return tok.access_token;
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: tok.refresh_token, grant_type: 'refresh_token' })
+    });
+    const d = await res.json();
+    if (d.access_token) {
+      sv('strava_tok', { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at });
+      return d.access_token;
+    }
+  } catch {}
+  return null;
 }
 
-function renderShoes(){
+function disconnect() {
+  sv('strava_tok', null);
+  sv('strava_ath', null);
+  sv('ss_acts', []);
+  acts = [];
+  show('landing');
+}
+
+// ── RENDER HELPERS ────────────────────────────────────────────────────────
+function show(id) {
+  ['landing','connecting','app'].forEach(s => document.getElementById(s).style.display = s===id ? 'block' : 'none');
+}
+
+function showApp() {
+  show('app');
+  const ath = ld('strava_ath', {});
+  if (ath.name) document.getElementById('athlete').textContent = ath.name.toUpperCase() + ' · STRAVA CONNECTED';
+  renderShoes();
+  renderDetail();
+}
+
+function shoeTotal(shoe) {
+  const sActs = acts.filter(a => new Date(a.start_date) >= new Date(shoe.startDate));
+  return sActs.reduce((s,a) => s + m2mi(a.distance), 0) + (shoe.manualRuns||[]).reduce((s,r) => s + r.distance, 0);
+}
+
+function renderShoes() {
   const el = document.getElementById('shoe-list');
-  el.innerHTML='';
-  shoes.forEach(shoe=>{
-    const mi = shoeTotal(shoe);
-    const left = Math.max(0,MAX-mi);
-    const pct = Math.min(mi/MAX,1)*100;
-    const col = left>200?'#b6f542':left>100?'#f5c842':'#f54242';
-    const isSel = shoe.id===selId;
+  el.innerHTML = '';
+  shoes.forEach(shoe => {
+    const mi   = shoeTotal(shoe);
+    const left = Math.max(0, MAX - mi);
+    const pct  = Math.min(mi / MAX, 1) * 100;
+    const col  = left > 200 ? '#b6f542' : left > 100 ? '#f5c842' : '#f54242';
+    const isSel = shoe.id === selId;
     const div = document.createElement('div');
-    div.className='shoe-card'+(isSel?' active':'');
-    div.innerHTML=`
+    div.className = 'shoe-card' + (isSel ? ' active' : '');
+    div.innerHTML = `
       <div style="font-size:14px;font-family:'Bebas Neue',cursive;color:#e8f5e0;letter-spacing:1px">${shoe.name}</div>
       <div style="font-size:9px;color:#4a5e40;margin-bottom:9px">Since ${shoe.startDate}</div>
       <div style="height:5px;background:#1e2a1a;border-radius:3px;margin-bottom:5px">
@@ -271,119 +266,122 @@ function renderShoes(){
         <span style="font-size:9px;color:#4a5e40">${mi.toFixed(1)} mi logged</span>
         <span style="font-size:9px;color:${col};font-weight:700">${left.toFixed(1)} mi left</span>
       </div>
-      ${left<=0?'<div style="font-size:9px;color:#f54242;margin-top:6px;text-align:center;letter-spacing:1px">⚠ RETIRE THESE SHOES</div>':''}
+      ${left <= 0 ? '<div style="font-size:9px;color:#f54242;margin-top:6px;text-align:center;letter-spacing:1px">⚠ RETIRE THESE SHOES</div>' : ''}
     `;
-    div.onclick=()=>{ selId=shoe.id; renderShoes(); renderDetail(); };
+    div.onclick = () => { selId = shoe.id; renderShoes(); renderDetail(); };
     el.appendChild(div);
   });
 }
 
-function shoeTotal(shoe){
-  const stravaActs = acts.filter(a=>new Date(a.start_date)>=new Date(shoe.startDate));
-  const stravaM = stravaActs.reduce((s,a)=>s+m2mi(a.distance),0);
-  const manualM = (shoe.manualRuns||[]).reduce((s,r)=>s+r.distance,0);
-  return stravaM+manualM;
-}
+function renderDetail() {
+  const shoe = shoes.find(s => s.id === selId) || shoes[0];
+  if (!shoe) return;
+  const shoeActs  = acts.filter(a => new Date(a.start_date) >= new Date(shoe.startDate));
+  const stravaM   = shoeActs.reduce((s,a) => s + m2mi(a.distance), 0);
+  const manualM   = (shoe.manualRuns||[]).reduce((s,r) => s + r.distance, 0);
+  const total     = stravaM + manualM;
+  const left      = Math.max(0, MAX - total);
+  const pct       = Math.min(total / MAX, 1);
+  const circ      = 2 * Math.PI * 62;
+  const col       = left > 200 ? '#b6f542' : left > 100 ? '#f5c842' : '#f54242';
 
-function renderDetail(){
-  const shoe = shoes.find(s=>s.id===selId)||shoes[0];
-  if(!shoe) return;
-  const shoeActs = acts.filter(a=>new Date(a.start_date)>=new Date(shoe.startDate));
-  const stravaM  = shoeActs.reduce((s,a)=>s+m2mi(a.distance),0);
-  const manualM  = (shoe.manualRuns||[]).reduce((s,r)=>s+r.distance,0);
-  const total    = stravaM+manualM;
-  const left     = Math.max(0,MAX-total);
-  const pct      = Math.min(total/MAX,1);
-  const circ     = 2*Math.PI*62;
-  const col      = left>200?'#b6f542':left>100?'#f5c842':'#f54242';
-
-  document.getElementById('d-name').textContent  = shoe.name.toUpperCase();
-  document.getElementById('d-left').textContent  = Math.round(left);
-  document.getElementById('d-left').style.color  = col;
-  document.getElementById('arc').style.stroke    = col;
-  document.getElementById('arc').style.strokeDasharray = `${pct*circ} ${circ}`;
-  document.getElementById('d-total').textContent = total.toFixed(1);
-  document.getElementById('d-strava').textContent= stravaM.toFixed(1);
-  document.getElementById('d-runs').textContent  = shoeActs.length+(shoe.manualRuns||[]).length;
-  document.getElementById('d-prompt').style.display = acts.length===0?'block':'none';
+  document.getElementById('d-name').textContent   = shoe.name.toUpperCase();
+  document.getElementById('d-left').textContent   = Math.round(left);
+  document.getElementById('d-left').style.color   = col;
+  document.getElementById('arc').style.stroke     = col;
+  document.getElementById('arc').style.strokeDasharray = `${pct * circ} ${circ}`;
+  document.getElementById('d-total').textContent  = total.toFixed(1);
+  document.getElementById('d-strava').textContent = stravaM.toFixed(1);
+  document.getElementById('d-runs').textContent   = shoeActs.length + (shoe.manualRuns||[]).length;
+  document.getElementById('d-prompt').style.display = acts.length === 0 ? 'block' : 'none';
 
   const allRuns = [
-    ...shoeActs.map(a=>({id:a.id,label:a.name,date:a.start_date.slice(0,10),dist:m2mi(a.distance),src:'strava'})),
-    ...(shoe.manualRuns||[]).map(r=>({...r,dist:r.distance,src:'manual'}))
-  ].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    ...shoeActs.map(a => ({ id:a.id, label:a.name, date:a.start_date.slice(0,10), dist:m2mi(a.distance), src:'strava' })),
+    ...(shoe.manualRuns||[]).map(r => ({ ...r, dist:r.distance, src:'manual' }))
+  ].sort((a,b) => new Date(b.date) - new Date(a.date));
 
   const log = document.getElementById('run-log');
-  log.innerHTML = allRuns.length===0
+  log.innerHTML = allRuns.length === 0
     ? '<div style="color:#253320;font-size:12px;text-align:center;padding:24px">No activities yet — sync Strava!</div>'
-    : allRuns.map(r=>`
+    : allRuns.map(r => `
         <div class="run-row">
           <div>
             <div style="font-size:12px;color:#c8e5b8">${r.label}</div>
             <div style="font-size:9px;color:#4a5e40;margin-top:2px">
-              ${r.date} ·
-              <span style="color:${r.src==='strava'?'#fc4c02':'#8a9e80'}">${r.src.toUpperCase()}</span>
+              ${r.date} · <span style="color:${r.src==='strava'?'#fc4c02':'#8a9e80'}">${r.src.toUpperCase()}</span>
             </div>
           </div>
           <div style="font-size:17px;font-family:'Bebas Neue',cursive;color:#b6f542">${r.dist.toFixed(1)} mi</div>
         </div>`).join('');
 }
 
-async function syncStrava(){
+// ── SYNC ──────────────────────────────────────────────────────────────────
+async function syncStrava() {
   const btn = document.getElementById('sync-btn');
   const msg = document.getElementById('sync-msg');
-  btn.textContent='Syncing...'; btn.disabled=true; msg.textContent='Fetching from Strava...';
-  try{
-    let tok = ld('strava_tok',null);
-    if(!tok) throw new Error('Not connected');
-    // refresh if expired
-    if(Date.now()/1000>tok.expires_at-60){
-      const r=await fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({client_id:clientId,client_secret:clientSec,refresh_token:tok.refresh_token,grant_type:'refresh_token'})});
-      const d=await r.json();
-      if(d.access_token){ tok=d; sv('strava_tok',{access_token:d.access_token,refresh_token:d.refresh_token,expires_at:d.expires_at}); }
-    }
-    let page=1,all=[];
-    while(true){
-      const res=await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}`,
-        {headers:{Authorization:`Bearer ${tok.access_token}`}});
-      const batch=await res.json();
-      if(!Array.isArray(batch)||batch.length===0) break;
-      all=[...all,...batch.filter(a=>['Walk','Run','VirtualRun','TrailRun','Hike'].includes(a.type))];
-      if(batch.length<100) break;
+  btn.textContent = 'Syncing...'; btn.disabled = true;
+  msg.textContent = 'Fetching from Strava...';
+  try {
+    const token = await refreshIfNeeded();
+    if (!token) throw new Error('Not connected — please reconnect.');
+    let page = 1, all = [];
+    while (true) {
+      const res = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}`,
+        { headers: { Authorization: `Bearer ${token}` } });
+      const batch = await res.json();
+      if (!Array.isArray(batch) || batch.length === 0) break;
+      all = [...all, ...batch.filter(a => ['Walk','Run','VirtualRun','TrailRun','Hike'].includes(a.type))];
+      if (batch.length < 100) break;
       page++;
     }
-    acts=all; sv('ss_acts',all);
-    msg.textContent=`✓ Synced ${all.length} activities`;
+    acts = all; sv('ss_acts', all);
+    msg.textContent = `✓ Synced ${all.length} activities`;
     renderShoes(); renderDetail();
-  }catch(e){ msg.textContent='Sync failed: '+e.message; }
-  btn.textContent='⟳ Sync Strava'; btn.disabled=false;
-  setTimeout(()=>msg.textContent='',4000);
+  } catch(e) {
+    msg.textContent = 'Sync failed: ' + e.message;
+  }
+  btn.textContent = '⟳ Sync Strava'; btn.disabled = false;
+  setTimeout(() => msg.textContent = '', 4000);
 }
 
-function disconnect(){ sv('strava_tok',null); location.reload(); }
-
-let addOpen=false;
-function toggleAddShoe(){
-  addOpen=!addOpen;
-  const f=document.getElementById('add-form');
-  f.style.display=addOpen?'flex':'none';
-  if(addOpen){ f.style.flexDirection='column'; f.style.gap='10px'; f.style.marginBottom='10px';
-    document.getElementById('f-date').value=new Date().toISOString().slice(0,10); }
+// ── SHOES ─────────────────────────────────────────────────────────────────
+let addOpen = false;
+function toggleAddShoe() {
+  addOpen = !addOpen;
+  const f = document.getElementById('add-form');
+  f.style.display = addOpen ? 'block' : 'none';
+  if (addOpen) document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
 }
-function addShoe(){
-  const name=(document.getElementById('f-name').value||'').trim();
-  const date=document.getElementById('f-date').value;
-  if(!name) return;
-  const ns={id:Date.now(),name,startDate:date,manualRuns:[]};
-  shoes.push(ns); selId=ns.id; sv('ss_shoes',shoes);
-  toggleAddShoe(); document.getElementById('f-name').value='';
+function addShoe() {
+  const name = (document.getElementById('f-name').value||'').trim();
+  const date = document.getElementById('f-date').value;
+  if (!name) return;
+  const ns = { id: Date.now(), name, startDate: date, manualRuns: [] };
+  shoes.push(ns); selId = ns.id; sv('ss_shoes', shoes);
+  toggleAddShoe();
+  document.getElementById('f-name').value = '';
   renderShoes(); renderDetail();
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
-gostep(0);
-const tok = ld('strava_tok',null);
-if(tok?.access_token){ clientId=ld('strava_cid',''); clientSec=ld('strava_csec',''); showApp(); }
+// ── INIT ──────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const code   = params.get('code');
+const error  = params.get('error');
+
+if (error) {
+  // user denied on Strava
+  show('landing');
+  document.getElementById('landing-msg').textContent = 'Authorization cancelled — try again when ready.';
+} else if (code) {
+  // coming back from Strava redirect
+  handleOAuthCallback(code);
+} else if (ld('strava_tok', null)?.access_token) {
+  // already connected
+  showApp();
+} else {
+  // fresh visit
+  show('landing');
+}
 </script>
 </body>
 </html>
