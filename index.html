@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SoleSurvivor"/>
+<meta name="theme-color" content="#18181b"/>
 <title>SoleSurvivor</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --bg:#18181b;--surface:#222226;--border:#36363c;
@@ -75,8 +79,10 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
 .streak-dot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;margin:2px}
 .hist-card{border:0.5px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;opacity:.8}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}.settings-row:last-child{border-bottom:none}
-#landing{max-width:400px;margin:80px auto;text-align:center;padding:0 24px}
-.hero{font-size:72px;font-weight:700;line-height:.92;letter-spacing:2px}.hero span{color:var(--accent)}
+#landing{max-width:420px;margin:0 auto;text-align:center;padding:0 24px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hero-wordmark{font-size:64px;font-weight:700;line-height:.95;letter-spacing:-1px;margin-bottom:12px}
+.hero-wordmark .sole{color:var(--text)}
+.hero-wordmark .survivor{color:var(--accent)}
 .notif-banner{position:fixed;top:20px;right:20px;background:var(--surface);border:1.5px solid var(--accent);border-radius:12px;padding:14px 18px;max-width:300px;z-index:999;animation:sIn .3s ease;box-shadow:var(--card-shadow)}
 @keyframes sIn{from{transform:translateX(140%)}to{transform:translateX(0)}}
 .attr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -86,23 +92,114 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
 .attr-shoe-btn:hover{border-color:var(--accent);background:var(--surface)}.attr-shoe-btn.picked{border-color:var(--accent);background:var(--alert-bg)}
 .attr-dots{display:flex;gap:5px;margin-bottom:18px;flex-wrap:wrap}
 .attr-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s;flex-shrink:0}.attr-dot.done{background:var(--accent)}.attr-dot.cur{background:var(--accent);opacity:.45}
+/* Mobile tab bar */
+.mob-tab-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;cursor:pointer;border:none;background:none;font-family:'Inter',sans-serif;color:var(--text-faint);font-size:10px;font-weight:500;gap:3px;transition:color .15s}
+.mob-tab.active{color:var(--accent)}
+.mob-tab-icon{font-size:16px}
+/* Responsive */
+@media(max-width:768px){
+  #app{padding:16px 14px 80px}
+  .tabs{display:none}
+  .mob-tab-bar{display:flex}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+  .stat-val{font-size:22px}
+  .app-grid{grid-template-columns:1fr;gap:12px}
+  .main-col{gap:12px}
+  .pr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tab-records>div:first-child{grid-template-columns:1fr!important}
+  #tab-settings{max-width:100%}
+  .attr-modal{padding:18px}
+}
+@media(max-width:420px){
+  .stat-val{font-size:20px}
+  .stats-grid{gap:8px}
+}
 </style>
 </head>
 <body>
 
 <div id="landing" style="display:none">
-  <div style="margin-bottom:32px"><div class="label" style="margin-bottom:12px">SHOE MILEAGE TRACKER</div><div class="hero">SOLE<br/><span>SURVIVOR</span></div><p style="color:var(--text-dim);font-size:13px;margin-top:18px;line-height:1.9">Track your shoe mileage.<br/>Know exactly when to retire them.</p></div>
-  <div style="width:140px;height:140px;margin:0 auto 32px;position:relative"><svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="58" fill="none" stroke="var(--border)" stroke-width="10"/><circle cx="70" cy="70" r="58" fill="none" stroke="var(--accent)" stroke-width="10" stroke-dasharray="218 365" stroke-linecap="round" transform="rotate(-90 70 70)"/></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:30px;font-weight:700;color:var(--accent);line-height:1">380</span><span style="font-size:9px;color:var(--text-dim);letter-spacing:2px">MI LEFT</span></div></div>
-  <button class="btn-strava" onclick="connectStrava()"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>Connect with Strava</button>
-  <div id="landing-msg" style="margin-top:10px;font-size:11px;color:var(--text-faint);min-height:16px"></div>
-  <p style="margin-top:20px;font-size:10px;color:var(--border);line-height:1.9">Your data never leaves your browser.<br/>Walk runs from Runna sync automatically.</p>
+  <!-- decorative rings -->
+  <svg style="position:absolute;top:-100px;right:-80px;opacity:.12;pointer-events:none" width="320" height="320" viewBox="0 0 320 320">
+    <circle cx="160" cy="160" r="155" fill="none" stroke="var(--accent)" stroke-width="1"/>
+    <circle cx="160" cy="160" r="120" fill="none" stroke="var(--accent)" stroke-width="1"/>
+  </svg>
+  <svg style="position:absolute;bottom:-60px;left:-60px;opacity:.08;pointer-events:none" width="240" height="240" viewBox="0 0 240 240">
+    <circle cx="120" cy="120" r="115" fill="none" stroke="var(--teal)" stroke-width="1"/>
+  </svg>
+
+  <!-- hero ring -->
+  <div style="position:relative;width:190px;height:190px;margin-bottom:28px;flex-shrink:0">
+    <svg width="190" height="190" viewBox="0 0 190 190">
+      <circle cx="95" cy="95" r="80" fill="none" stroke="var(--border)" stroke-width="14"/>
+      <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent)" stroke-width="14"
+        stroke-dasharray="168 503" stroke-linecap="round" transform="rotate(-90 95 95)"/>
+      <circle cx="95" cy="95" r="80" fill="none" stroke="var(--teal)" stroke-width="14"
+        stroke-dasharray="50 503" stroke-linecap="round" stroke-dashoffset="-168" transform="rotate(-90 95 95)"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <span style="font-size:10px;color:var(--text-faint);letter-spacing:2px;font-weight:500;margin-bottom:2px">MILES LEFT</span>
+      <span style="font-size:36px;font-weight:700;color:var(--accent);line-height:1">380</span>
+      <span style="font-size:9px;color:var(--text-faint);margin-top:3px">of 500</span>
+    </div>
+  </div>
+
+  <!-- wordmark -->
+  <div class="hero-wordmark"><span class="sole">Sole</span><span class="survivor">Survivor</span></div>
+  <p style="color:var(--text-dim);font-size:14px;line-height:1.7;margin-bottom:28px;max-width:300px">
+    Track every mile.<br/>Know exactly when to retire your shoes.
+  </p>
+
+  <!-- mini stats preview -->
+  <div style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 0;display:flex;margin-bottom:28px">
+    <div style="flex:1;text-align:center;border-right:1px solid var(--border)">
+      <div style="font-size:20px;font-weight:700;color:var(--accent)">120.4</div>
+      <div style="font-size:8px;color:var(--text-faint);letter-spacing:1.5px;font-weight:500;margin-top:3px">MILES LOGGED</div>
+    </div>
+    <div style="flex:1;text-align:center;border-right:1px solid var(--border)">
+      <div style="font-size:20px;font-weight:700;color:var(--text)">379.6</div>
+      <div style="font-size:8px;color:var(--text-faint);letter-spacing:1.5px;font-weight:500;margin-top:3px">MILES LEFT</div>
+    </div>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:var(--teal)">12.3</div>
+      <div style="font-size:8px;color:var(--text-faint);letter-spacing:1.5px;font-weight:500;margin-top:3px">THIS WEEK</div>
+    </div>
+  </div>
+
+  <button class="btn-strava" onclick="connectStrava()" style="width:100%;margin-bottom:16px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+    Connect with Strava
+  </button>
+  <div id="landing-msg" style="font-size:11px;color:var(--text-faint);min-height:16px;margin-bottom:8px"></div>
+  <p style="font-size:11px;color:var(--text-faint);line-height:1.8;opacity:.7">Your data stays in your browser<br/>Walk runs from Runna sync automatically</p>
 </div>
 
-<div id="connecting" style="display:none;max-width:400px;margin:100px auto;text-align:center;padding:20px"><div style="font-size:36px;font-weight:700;letter-spacing:2px;margin-bottom:12px">CONNECTING...</div><p style="color:var(--text-faint);font-size:12px">Finishing Strava authorization.</p></div>
+<div id="connecting" style="display:none;max-width:400px;margin:100px auto;text-align:center;padding:20px"><div style="font-size:36px;font-weight:700;letter-spacing:2px;margin-bottom:12px">Connecting...</div><p style="color:var(--text-faint);font-size:12px">Finishing Strava authorization.</p></div>
+
+<!-- Mobile tab bar -->
+<div class="mob-tab-bar" id="mob-tab-bar">
+  <button class="mob-tab active" id="mt-dashboard" onclick="switchTab('dashboard',this,'mt-dashboard')">
+    <span class="mob-tab-icon">&#9632;</span>Dashboard
+  </button>
+  <button class="mob-tab" id="mt-records" onclick="switchTab('records',this,'mt-records')">
+    <span class="mob-tab-icon">&#9670;</span>Records
+  </button>
+  <button class="mob-tab" id="mt-history" onclick="switchTab('history',this,'mt-history')">
+    <span class="mob-tab-icon">&#9679;</span>History
+  </button>
+  <button class="mob-tab" id="mt-settings" onclick="switchTab('settings',this,'mt-settings')">
+    <span class="mob-tab-icon">&#9881;</span>Settings
+  </button>
+</div>
 
 <div id="app" style="display:none;padding:24px 28px;max-width:1400px;margin:0 auto">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-    <div><div class="label" style="margin-bottom:2px">SOLESURVIVOR</div><div style="font-size:36px;font-weight:700;letter-spacing:2px;line-height:1" id="page-title">DASHBOARD</div><div id="athlete" class="label" style="margin-top:5px"></div></div>
+    <div>
+      <div style="font-size:11px;color:var(--text-faint);letter-spacing:1px;font-weight:500;margin-bottom:2px">SHOE TRACKER</div>
+      <div style="font-size:28px;font-weight:700;line-height:1" id="page-title"><span style="color:var(--text)">Sole</span><span style="color:var(--accent)">Survivor</span></div>
+      <div id="athlete" style="font-size:10px;color:var(--text-faint);margin-top:4px;letter-spacing:.5px"></div>
+    </div>
     <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
       <div style="display:flex;gap:8px;align-items:center">
         <button class="btn btn-primary" id="sync-btn" onclick="syncStrava()" style="border-radius:20px">&#8635; Sync Strava</button>
@@ -349,8 +446,20 @@ async function refreshTok(){const t=ld('strava_tok',null);if(!t) return null;if(
   try{const r=await fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id:CLIENT_ID,client_secret:CLIENT_SECRET,refresh_token:t.refresh_token,grant_type:'refresh_token'})});const d=await r.json();if(d.access_token){sv('strava_tok',{access_token:d.access_token,refresh_token:d.refresh_token,expires_at:d.expires_at});return d.access_token;}}catch{}return null;}
 function disconnect(){sv('strava_tok',null);sv('strava_ath',null);acts=[];attrs={};sv('ss_acts',[]);sv('ss_attrs',{});show('landing');}
 function show(id){['landing','connecting','app'].forEach(s=>document.getElementById(s).style.display=s===id?'block':'none');}
-function switchTab(name,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['dashboard','records','history','settings'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');const titles={dashboard:'DASHBOARD',records:'RECORDS & STREAKS',history:'SHOE HISTORY',settings:'SETTINGS'};document.getElementById('page-title').textContent=titles[name];if(name==='records')renderRecords();if(name==='history')renderHistory();if(name==='settings')renderSettings();}
-async function showApp(){show('app');applyTheme();applyUnits();const ath=ld('strava_ath',{});if(ath.name) document.getElementById('athlete').textContent=ath.name.toUpperCase()+' \u00b7 STRAVA CONNECTED';loadNotifs();checkNotifPerm();checkAttributionMode();if(shoes.length===1)autoAttributeToSingleShoe();renderDashboard();if(autoSync){document.getElementById('sync-msg').textContent='Auto-syncing...';await syncStrava(true);}}
+function switchTab(name,el,mobId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+  const mobEl=document.getElementById(mobId||'mt-'+name);
+  if(mobEl) mobEl.classList.add('active');
+  ['dashboard','records','history','settings'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  const titles={dashboard:'Dashboard',records:'Records & Streaks',history:'Shoe History',settings:'Settings'};
+  document.getElementById('page-title').innerHTML=`<span style="color:var(--text)">Sole</span><span style="color:var(--accent)">Survivor</span> <span style="font-size:16px;font-weight:500;color:var(--text-faint);letter-spacing:0">/ ${titles[name]}</span>`;
+  if(name==='records')renderRecords();
+  if(name==='history')renderHistory();
+  if(name==='settings')renderSettings();
+}
+async function showApp(){show('app');applyTheme();applyUnits();const ath=ld('strava_ath',{});if(ath.name) document.getElementById('athlete').textContent=ath.name+' · Strava connected';document.getElementById('page-title').innerHTML=`<span style="color:var(--text)">Sole</span><span style="color:var(--accent)">Survivor</span> <span style="font-size:16px;font-weight:500;color:var(--text-faint);letter-spacing:0">/ Dashboard</span>`;document.getElementById('mob-tab-bar').style.display='flex';loadNotifs();checkNotifPerm();checkAttributionMode();if(shoes.length===1)autoAttributeToSingleShoe();renderDashboard();if(autoSync){document.getElementById('sync-msg').textContent='Auto-syncing...';await syncStrava(true);}}
 function applyTheme(){document.documentElement.setAttribute('data-theme',darkTheme?'dark':'light');const tog=document.getElementById('s-theme');if(tog)tog.checked=!darkTheme;}
 function toggleTheme(){darkTheme=!darkTheme;sv('ss_dark',darkTheme);applyTheme();}
 function applyUnits(){const lbl=unitLabel(),upper=unitUpper();document.querySelectorAll('.unit-upper').forEach(el=>el.textContent=upper);document.getElementById('proj-unit').textContent=upper+' LEFT';const nd=document.getElementById('unit-display');if(nd)nd.textContent=useKm?'Kilometres':'Miles';const ul=document.getElementById('unit-label-notif');if(ul)ul.textContent=lbl;const ul2=document.getElementById('unit-label-notif2');if(ul2)ul2.textContent=lbl;const su=document.getElementById('s-units');if(su)su.checked=useKm;renderDashboard();}
