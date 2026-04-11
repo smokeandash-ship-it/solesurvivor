@@ -158,7 +158,7 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
         stroke-dasharray="42 415" stroke-linecap="round" stroke-dashoffset="-138" transform="rotate(-90 80 80)"/>
     </svg>
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <span style="font-size:9px;color:var(--text-faint);letter-spacing:2px;font-weight:500">MILES LEFT</span>
+      <span style="font-size:9px;color:var(--text-faint);letter-spacing:2px;font-weight:500" id="landing-unit-lbl">MILES LEFT</span>
       <span style="font-size:32px;font-weight:700;color:var(--accent);line-height:1.1">380</span>
       <span style="font-size:9px;color:var(--text-faint)">of 500</span>
     </div>
@@ -229,10 +229,10 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
 
   <div id="tab-dashboard">
     <div class="stats-grid">
-      <div class="stat-card"><div class="label">TOTAL MILES</div><div class="stat-val" id="s-total">0.0</div><div class="stat-sub" id="s-shoe-name">on active shoe</div></div>
-      <div class="stat-card hl"><div class="label">MILES LEFT</div><div class="stat-val" id="s-left" style="color:var(--accent)">500</div><div class="stat-sub">until retirement</div></div>
+      <div class="stat-card"><div class="label" id="lbl-total">TOTAL MILES</div><div class="stat-val" id="s-total">0.0</div><div class="stat-sub" id="s-shoe-name">on active shoe</div></div>
+      <div class="stat-card hl"><div class="label" id="lbl-left">MILES LEFT</div><div class="stat-val" id="s-left" style="color:var(--accent)">500</div><div class="stat-sub" id="lbl-left-sub">until retirement</div></div>
       <div class="stat-card teal"><div class="label">RETIRE DATE</div><div class="stat-val" id="s-date" style="font-size:22px;padding-top:4px;color:var(--teal)">&#8212;</div><div class="stat-sub" id="s-date-sub">at current pace</div></div>
-      <div class="stat-card sky"><div class="label">THIS WEEK</div><div class="stat-val" id="s-week" style="color:var(--sky)">0.0</div><div class="stat-sub" id="s-week-sub">mi this week</div></div>
+      <div class="stat-card sky"><div class="label" id="lbl-week">THIS WEEK</div><div class="stat-val" id="s-week" style="color:var(--sky)">0.0</div><div class="stat-sub" id="s-week-sub">mi this week</div></div>
     </div>
     <div class="app-grid">
       <div>
@@ -250,8 +250,8 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
         <div id="shoe-list"></div>
         <div class="card" style="margin-top:12px">
           <div class="label" style="margin-bottom:14px">NOTIFICATIONS</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px">Alert at 400 <span id="unit-label-notif">mi</span></span><label class="toggle"><input type="checkbox" id="n400" onchange="saveNotifs()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
-          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px">Alert at 500 <span id="unit-label-notif2">mi</span> (retire)</span><label class="toggle"><input type="checkbox" id="n500" onchange="saveNotifs()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px">Alert at <span id="unit-label-notif-thresh">400</span> <span id="unit-label-notif">mi</span></span><label class="toggle"><input type="checkbox" id="n400" onchange="saveNotifs()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px">Alert at <span id="unit-label-notif2-thresh">500</span> <span id="unit-label-notif2">mi</span> (retire)</span><label class="toggle"><input type="checkbox" id="n500" onchange="saveNotifs()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
           <button class="btn btn-secondary" id="notif-btn" onclick="askNotifPerm()" style="width:100%;margin-top:12px;font-size:10px;display:none">Enable Browser Notifications</button>
           <div id="notif-status" style="font-size:9px;color:var(--text-faint);margin-top:6px"></div>
         </div>
@@ -297,38 +297,42 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
       <!-- CTL/ATL/TSB -->
       <div class="card" style="grid-column:span 2">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
           <div class="label">FITNESS &amp; FORM</div>
           <div style="font-size:10px;color:var(--text-faint)">Calculated from your training history</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--teal)">
+          These three numbers are the same metrics behind Strava's Fitness &amp; Freshness feature — calculated here using the open Banister training load model. Every run gets a Training Stress Score based on how hard it was relative to your threshold pace. That score feeds into rolling averages over 42 days (fitness) and 7 days (fatigue).
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
           <div style="background:var(--teal-bg);border:1px solid var(--teal-border);border-radius:10px;padding:14px 16px">
             <div style="font-size:8px;color:var(--teal);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FITNESS (CTL)</div>
             <div style="font-size:32px;font-weight:700;color:var(--teal);line-height:1" id="ctl-val">—</div>
-            <div style="font-size:9px;color:var(--text-faint);margin-top:4px">42-day training load</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">42-day rolling average of your training load. Higher = more aerobically fit. Builds slowly — typically takes 6–8 weeks of consistent running to move meaningfully.</div>
           </div>
-          <div style="background:var(--danger);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:14px 16px">
+          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:14px 16px">
             <div style="font-size:8px;color:var(--danger);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FATIGUE (ATL)</div>
             <div style="font-size:32px;font-weight:700;color:var(--danger);line-height:1" id="atl-val">—</div>
-            <div style="font-size:9px;color:var(--text-faint);margin-top:4px">7-day training load</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">7-day rolling load. Spikes after hard weeks, drops quickly with rest. High fatigue isn't bad — it means you've been training hard. The key is managing it alongside fitness.</div>
           </div>
           <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:10px;padding:14px 16px">
             <div style="font-size:8px;color:var(--amber);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FORM (TSB)</div>
             <div style="font-size:32px;font-weight:700;color:var(--amber);line-height:1" id="tsb-val">—</div>
-            <div style="font-size:9px;color:var(--text-faint);margin-top:4px">Fitness minus Fatigue</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">Fitness minus Fatigue. Positive (+5 to +25) = fresh and ready to race. Negative (-10 to -30) = normal training, some fatigue. Below -30 = overreaching, consider rest.</div>
           </div>
         </div>
         <div class="label" style="margin-bottom:8px">TRAINING LOAD — LAST 16 WEEKS</div>
         <div id="load-chart" style="display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto"></div>
         <div style="display:flex;gap:16px;margin-top:6px">
-          <span style="font-size:9px;color:var(--teal);font-weight:600">&#9632; CTL Fitness</span>
-          <span style="font-size:9px;color:var(--danger);font-weight:600">&#9632; ATL Fatigue</span>
+          <span style="font-size:9px;color:var(--teal);font-weight:600">&#9632; CTL Fitness (42d)</span>
+          <span style="font-size:9px;color:var(--danger);font-weight:600">&#9632; ATL Fatigue (7d)</span>
         </div>
       </div>
 
       <!-- Recovery -->
       <div class="card">
-        <div class="label" style="margin-bottom:14px">RECOVERY STATUS</div>
+        <div class="label" style="margin-bottom:6px">RECOVERY STATUS</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Derived from your Form score. Positive form = fresh, negative form = some fatigue still present from recent training.</div>
         <div id="recovery-status" style="font-size:22px;font-weight:700;margin-bottom:6px">—</div>
         <div style="position:relative;height:16px;background:var(--border);border-radius:8px;margin:10px 0">
           <div id="recovery-bar" style="height:100%;border-radius:8px;background:var(--amber);transition:width .4s;width:50%"></div>
@@ -336,9 +340,10 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
         </div>
         <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint);margin-bottom:12px"><span>TIRED</span><span>FRESH</span></div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.6" id="recovery-msg">Sync runs to calculate</div>
-        <div style="font-size:10px;color:var(--text-faint);margin-top:6px" id="recovery-sub"></div>
+        <div style="font-size:10px;color:var(--text-faint);margin-top:4px" id="recovery-sub"></div>
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-          <div class="label" style="margin-bottom:8px">EFFORT DISTRIBUTION</div>
+          <div class="label" style="margin-bottom:4px">EFFORT DISTRIBUTION</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">Research shows 80% of training should be easy (Zone 1–2) and only 20% hard. This is called the 80/20 rule and is used by elite runners worldwide.</div>
           <div id="effort-dist"></div>
         </div>
       </div>
@@ -347,36 +352,38 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
     <!-- Row 2: Pace Zones + Best Efforts + Monthly Volume -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
       <div class="card">
-        <div class="label" style="margin-bottom:14px">PACE ZONES</div>
-        <div style="font-size:10px;color:var(--text-faint);margin-bottom:12px">Based on your best mile effort</div>
+        <div class="label" style="margin-bottom:4px">PACE ZONES</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Based on your estimated threshold pace — the pace you could sustain for roughly an hour. SoleSurvivor estimates this from your fastest recent runs. Apple Fitness uses heart rate zones; we use pace zones as a proxy when HR isn't available.</div>
         <div id="pace-zones"></div>
       </div>
       <div class="card">
         <div class="label" style="margin-bottom:4px">BEST EFFORTS</div>
-        <div style="font-size:10px;color:var(--text-faint);margin-bottom:12px">Fastest times across all synced runs</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Fastest estimated time over each distance, extrapolated from your actual run paces. Updates automatically as you log faster runs. These mirror what Strava's Best Efforts feature shows, calculated from free API data.</div>
         <div id="best-efforts"></div>
       </div>
       <div class="card">
-        <div class="label" style="margin-bottom:14px">MONTHLY VOLUME</div>
+        <div class="label" style="margin-bottom:4px">MONTHLY VOLUME</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Total distance logged per month. Consistent month-on-month growth of 5–10% is the safe build rate recommended by most running coaches to avoid injury.</div>
         <div id="monthly-volume" style="display:flex;align-items:flex-end;gap:4px;height:100px"></div>
       </div>
     </div>
 
-    <!-- Row 3: Relative Effort sparkline + consistency -->
+    <!-- Row 3: Relative Effort + consistency -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
           <div class="label">RELATIVE EFFORT (TRIMP)</div>
-          <div style="font-size:10px;color:var(--text-faint)">HR-weighted effort per run</div>
         </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">TRIMP (Training Impulse) is a heart-rate-weighted effort score per run, developed by Dr. Eric Banister in 1991. Strava calls this "Relative Effort." When HR isn't available we estimate it from pace. Green bars = easy, amber = moderate, red = hard session.</div>
         <div id="trimp-chart" style="display:flex;align-items:flex-end;gap:3px;height:70px;overflow-x:auto"></div>
-        <div style="font-size:10px;color:var(--text-faint);margin-top:8px">Higher bars = harder sessions. Aim for varied effort with easy recovery days.</div>
+        <div style="font-size:10px;color:var(--text-faint);margin-top:8px">Each bar = one run. Aim for varied effort with easy recovery days between hard sessions.</div>
       </div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div class="label">TRAINING CONSISTENCY</div>
           <div id="consistency-avg" style="font-size:10px;color:var(--teal);font-weight:600"></div>
         </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Runs per week over the last 12 weeks. Consistency is the single biggest predictor of running improvement — frequency matters more than any individual workout.</div>
         <div id="consistency-chart" style="display:flex;align-items:flex-end;gap:4px;height:70px"></div>
         <div id="consistency-labels" style="display:flex;gap:4px;margin-top:4px"></div>
       </div>
@@ -403,8 +410,8 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
   <div id="tab-history" style="display:none">
     <div class="stats-grid">
       <div class="stat-card"><div class="label">TOTAL SHOES</div><div class="stat-val" id="h-total-shoes">0</div><div class="stat-sub">all time</div></div>
-      <div class="stat-card"><div class="label">ALL-TIME MILES</div><div class="stat-val" id="h-total-mi" style="font-size:22px;padding-top:6px">0.0</div><div class="stat-sub">across all shoes</div></div>
-      <div class="stat-card"><div class="label">AVG SHOE LIFE</div><div class="stat-val" id="h-avg-life" style="font-size:22px;padding-top:6px">&#8212;</div><div class="stat-sub">retired pairs</div></div>
+      <div class="stat-card"><div class="label" id="lbl-alltime">ALL-TIME MILES</div><div class="stat-val" id="h-total-mi" style="font-size:22px;padding-top:6px">0.0</div><div class="stat-sub">across all shoes</div></div>
+      <div class="stat-card"><div class="label" id="lbl-avglife">AVG SHOE LIFE</div><div class="stat-val" id="h-avg-life" style="font-size:22px;padding-top:6px">&#8212;</div><div class="stat-sub">retired pairs</div></div>
       <div class="stat-card"><div class="label">RETIRED SHOES</div><div class="stat-val" id="h-retired">0</div><div class="stat-sub">archived</div></div>
     </div>
     <div id="history-list"></div>
@@ -592,17 +599,33 @@ async function showApp(){show('app');applyTheme();applyUnits();const ath=ld('str
 function applyTheme(){document.documentElement.setAttribute('data-theme',darkTheme?'dark':'light');const tog=document.getElementById('s-theme');if(tog)tog.checked=!darkTheme;}
 function toggleTheme(){darkTheme=!darkTheme;sv('ss_dark',darkTheme);applyTheme();}
 function applyUnits(){
-  const lbl=unitLabel(),upper=unitUpper();
+  const lbl=unitLabel(), upper=unitUpper(), isKm=useKm;
+  // generic .unit-upper spans
   document.querySelectorAll('.unit-upper').forEach(el=>el.textContent=upper);
+  // projection ring
   const pu=document.getElementById('proj-unit');if(pu)pu.textContent=upper+' LEFT';
-  const nd=document.getElementById('unit-display');if(nd)nd.textContent=useKm?'Kilometres':'Miles';
-  const ul=document.getElementById('unit-label-notif');if(ul)ul.textContent=lbl;
-  const ul2=document.getElementById('unit-label-notif2');if(ul2)ul2.textContent=lbl;
-  const su=document.getElementById('s-units');if(su)su.checked=useKm;
-  // update history labels that are hardcoded
-  const hmi=document.getElementById('h-total-mi');if(hmi){const v=parseFloat(hmi.textContent);if(!isNaN(v)){};}
+  // settings toggle label
+  const nd=document.getElementById('unit-display');if(nd)nd.textContent=isKm?'Kilometres':'Miles';
+  const su=document.getElementById('s-units');if(su)su.checked=isKm;
+  // dashboard stat card titles
+  const lt=document.getElementById('lbl-total');if(lt)lt.textContent=isKm?'TOTAL KM':'TOTAL MILES';
+  const ll=document.getElementById('lbl-left');if(ll)ll.textContent=isKm?'KM LEFT':'MILES LEFT';
+  const lls=document.getElementById('lbl-left-sub');if(lls)lls.textContent='until retirement';
+  const lw=document.getElementById('lbl-week');if(lw)lw.textContent=isKm?'THIS WEEK (KM)':'THIS WEEK';
+  // notification threshold labels
+  const nt=document.getElementById('unit-label-notif');if(nt)nt.textContent=lbl;
+  const nt2=document.getElementById('unit-label-notif2');if(nt2)nt2.textContent=lbl;
+  const ntn=document.getElementById('unit-label-notif-thresh');
+  if(ntn)ntn.textContent=isKm?Math.round(400*1.60934):'400';
+  const ntn2=document.getElementById('unit-label-notif2-thresh');
+  if(ntn2)ntn2.textContent=isKm?Math.round(500*1.60934):'500';
+  // history labels
+  const ha=document.getElementById('lbl-alltime');if(ha)ha.textContent=isKm?'ALL-TIME KM':'ALL-TIME MILES';
+  const hv=document.getElementById('lbl-avglife');if(hv)hv.textContent=isKm?'AVG SHOE LIFE (KM)':'AVG SHOE LIFE (MI)';
+  // landing ring
+  const lr=document.getElementById('landing-unit-lbl');if(lr)lr.textContent=isKm?'KM LEFT':'MILES LEFT';
+  // re-render all visible content
   renderDashboard();
-  // re-render whichever other tab is visible
   if(document.getElementById('tab-analytics')&&document.getElementById('tab-analytics').style.display!=='none') renderAnalytics();
   if(document.getElementById('tab-records').style.display!=='none') renderRecords();
   if(document.getElementById('tab-history').style.display!=='none') renderHistory();
@@ -1184,14 +1207,13 @@ function renderAnalytics(){
   const wkLoad=buildWeeklyLoad();
   const maxLoad=Math.max(...wkLoad.map(w=>Math.max(w.ctl,w.atl)),1);
   const lc=document.getElementById('load-chart');lc.innerHTML='';
+  lc.style.cssText='display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto';
   wkLoad.forEach(w=>{
-    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;min-width:28px';
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:flex-end;gap:1px;flex:1;min-width:28px';
     const ctlH=Math.max(Math.round((w.ctl/maxLoad)*76),2);
     const atlH=Math.max(Math.round((w.atl/maxLoad)*76),2);
-    wrap.innerHTML=`<div style="display:flex;align-items:flex-end;gap:1px;width:100%">
-      <div style="flex:1;height:${ctlH}px;background:var(--teal);border-radius:2px 2px 0 0;opacity:.8"></div>
-      <div style="flex:1;height:${atlH}px;background:var(--danger);border-radius:2px 2px 0 0;opacity:.7"></div>
-    </div>`;
+    wrap.innerHTML=`<div style="flex:1;height:${ctlH}px;background:var(--teal);border-radius:2px 2px 0 0;opacity:.8"></div>
+      <div style="flex:1;height:${atlH}px;background:var(--danger);border-radius:2px 2px 0 0;opacity:.7"></div>`;
     lc.appendChild(wrap);
   });
 
@@ -1279,21 +1301,22 @@ function renderAnalytics(){
     mvc.appendChild(col);
   });
 
-  // ── TRIMP sparkline
+  // ── TRIMP sparkline — pixel heights
   const recentRuns=sa.slice().sort((a,b)=>new Date(a.start_date)-new Date(b.start_date)).slice(-28);
-  const maxTrimp=Math.max(...recentRuns.map(a=>calcTRIMP(a)),1);
+  const trimpVals=recentRuns.map(a=>calcTRIMP(a));
+  const maxTrimp=Math.max(...trimpVals,1);
   const tc=document.getElementById('trimp-chart');tc.innerHTML='';
-  recentRuns.forEach(a=>{
-    const trimp=calcTRIMP(a);
+  recentRuns.forEach((a,i)=>{
+    const trimp=trimpVals[i];
     const h=Math.max(Math.round((trimp/maxTrimp)*66),3);
     const col=trimp>maxTrimp*.7?'var(--danger)':trimp>maxTrimp*.4?'var(--amber)':'var(--teal)';
     const b=document.createElement('div');
-    b.style.cssText=`flex:1;min-width:10px;height:${h}px;background:${col};border-radius:2px 2px 0 0;cursor:pointer;title="${a.name}"`;
+    b.style.cssText=`flex:1;min-width:10px;height:${h}px;background:${col};border-radius:2px 2px 0 0;cursor:pointer;align-self:flex-end`;
     b.title=`${a.name} · TRIMP ${trimp}`;
     tc.appendChild(b);
   });
 
-  // ── Consistency chart (runs/week last 12 weeks)
+  // ── Consistency chart — pixel heights
   const weekCounts=[];
   for(let i=11;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i*7);
@@ -1308,10 +1331,10 @@ function renderAnalytics(){
   const cc=document.getElementById('consistency-chart');cc.innerHTML='';
   const cl=document.getElementById('consistency-labels');cl.innerHTML='';
   weekCounts.forEach((w,i)=>{
-    const h=Math.max(Math.round((w.cnt/maxCnt)*66),3);
+    const h=Math.max(Math.round((w.cnt/maxCnt)*66),w.cnt>0?4:2);
     const isLast=i===weekCounts.length-1;
     const b=document.createElement('div');
-    b.style.cssText=`flex:1;height:${h}px;background:${isLast?'var(--accent)':'var(--border)'};border-radius:2px 2px 0 0`;
+    b.style.cssText=`flex:1;height:${h}px;background:${isLast?'var(--accent)':w.cnt>0?'rgba(255,124,92,.4)':'var(--border)'};border-radius:2px 2px 0 0;align-self:flex-end`;
     cc.appendChild(b);
     const lbl=document.createElement('div');
     lbl.style.cssText='flex:1;font-size:8px;color:var(--text-faint);text-align:center';
