@@ -127,6 +127,18 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
   .stat-val{font-size:20px}
   .stats-grid{gap:8px}
 }
+/* analytics sub-tabs */
+.atab{background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:500;color:var(--text-dim);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.atab:hover{border-color:var(--accent);color:var(--text)}
+.atab-active{background:var(--accent);border-color:var(--accent);color:var(--accent-dk);font-weight:600}
+.explain-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:2px 9px;font-size:10px;color:var(--text-faint);cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s}
+.explain-btn:hover{border-color:var(--accent);color:var(--accent)}
+.explain-box{background:var(--bg);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;font-size:11px;color:var(--text-dim);line-height:1.7;margin:8px 0 12px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.bm-gauge{position:relative;height:10px;border-radius:5px;overflow:hidden;margin-bottom:6px}
+.bm-gauge-track{position:absolute;inset:0;display:flex}
+.bm-gauge-needle{position:absolute;top:-3px;width:4px;height:16px;background:white;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 4px rgba(0,0,0,.4);transition:left .6s}
+.bm-label{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -293,109 +305,175 @@ input:focus,select:focus{border-color:var(--accent)}input::placeholder{color:var
       </div>
     </div>
 
-    <!-- Fitness & Form -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
-      <!-- CTL/ATL/TSB -->
-      <div class="card" style="grid-column:span 2">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-          <div class="label">FITNESS &amp; FORM</div>
-          <div style="font-size:10px;color:var(--text-faint)">Calculated from your training history</div>
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--teal)">
-          These three numbers are the same metrics behind Strava's Fitness &amp; Freshness feature — calculated here using the open Banister training load model. Every run gets a Training Stress Score based on how hard it was relative to your threshold pace. That score feeds into rolling averages over 42 days (fitness) and 7 days (fatigue).
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-          <div style="background:var(--teal-bg);border:1px solid var(--teal-border);border-radius:10px;padding:14px 16px">
-            <div style="font-size:8px;color:var(--teal);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FITNESS (CTL)</div>
-            <div style="font-size:32px;font-weight:700;color:var(--teal);line-height:1" id="ctl-val">—</div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">42-day rolling average of your training load. Higher = more aerobically fit. Builds slowly — typically takes 6–8 weeks of consistent running to move meaningfully.</div>
+    <!-- Analytics sub-tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button onclick="switchAnalyticsTab('overview')" id="atab-overview" class="atab atab-active">Overview</button>
+      <button onclick="switchAnalyticsTab('fitness')" id="atab-fitness" class="atab">Fitness & Load</button>
+      <button onclick="switchAnalyticsTab('pacing')" id="atab-pacing" class="atab">Pacing & Efforts</button>
+      <button onclick="switchAnalyticsTab('runs')" id="atab-runs" class="atab">Run Log</button>
+    </div>
+
+    <!-- ── OVERVIEW ── -->
+    <div id="apanel-overview">
+      <!-- 4 headline metrics -->
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px" id="a-overview-cards"></div>
+      <!-- 2-col: recovery + effort dist -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="card" id="a-recovery-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">TODAY'S READINESS</div>
+            <button onclick="toggleExplain('ex-recovery')" class="explain-btn">What is this?</button>
           </div>
-          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:14px 16px">
-            <div style="font-size:8px;color:var(--danger);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FATIGUE (ATL)</div>
-            <div style="font-size:32px;font-weight:700;color:var(--danger);line-height:1" id="atl-val">—</div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">7-day rolling load. Spikes after hard weeks, drops quickly with rest. High fatigue isn't bad — it means you've been training hard. The key is managing it alongside fitness.</div>
+          <div id="ex-recovery" class="explain-box" style="display:none">Your readiness score combines your Form (TSB) and days since last run. It mirrors Apple Fitness's "Readiness" feature. Positive TSB means your fitness outweighs recent fatigue — good day to push. Negative means you're carrying load from recent training — good day to go easy or rest.</div>
+          <div id="recovery-status" style="font-size:26px;font-weight:700;margin:10px 0 4px">—</div>
+          <div style="position:relative;height:18px;background:var(--border);border-radius:9px;margin:10px 0 6px">
+            <div id="recovery-bar" style="height:100%;border-radius:9px;background:var(--amber);transition:width .5s;width:50%"></div>
+            <div id="recovery-dot" style="position:absolute;top:-4px;width:26px;height:26px;border-radius:50%;background:var(--surface);border:3px solid var(--amber);left:46%;transform:translateX(-50%);transition:left .5s,border-color .5s"></div>
           </div>
-          <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:10px;padding:14px 16px">
-            <div style="font-size:8px;color:var(--amber);letter-spacing:1.5px;font-weight:600;margin-bottom:4px">FORM (TSB)</div>
-            <div style="font-size:32px;font-weight:700;color:var(--amber);line-height:1" id="tsb-val">—</div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.5">Fitness minus Fatigue. Positive (+5 to +25) = fresh and ready to race. Negative (-10 to -30) = normal training, some fatigue. Below -30 = overreaching, consider rest.</div>
-          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint);margin-bottom:10px"><span>TIRED</span><span>FRESH</span></div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6" id="recovery-msg">Sync runs to calculate</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:4px" id="recovery-sub"></div>
         </div>
-        <div class="label" style="margin-bottom:8px">TRAINING LOAD — LAST 16 WEEKS</div>
-        <div id="load-chart" style="display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto"></div>
-        <div style="display:flex;gap:16px;margin-top:6px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">EFFORT BALANCE</div>
+            <button onclick="toggleExplain('ex-effort')" class="explain-btn">What is this?</button>
+          </div>
+          <div id="ex-effort" class="explain-box" style="display:none">The 80/20 rule is one of the most well-researched principles in endurance training. Scientists like Dr. Stephen Seiler found that elite runners do ~80% of their training at low intensity and only ~20% at moderate to high intensity. Doing too much hard training leads to injury and burnout. Your target: Easy ≥80%, Hard ≤20%.</div>
+          <div id="effort-dist"></div>
+          <div id="effort-verdict" style="margin-top:12px;padding:10px;border-radius:8px;font-size:11px;line-height:1.5"></div>
+        </div>
+      </div>
+      <!-- monthly volume + consistency -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">MONTHLY VOLUME</div>
+            <button onclick="toggleExplain('ex-vol')" class="explain-btn">What is this?</button>
+          </div>
+          <div id="ex-vol" class="explain-box" style="display:none">Monthly volume tracks your total distance per month. Running coaches recommend increasing volume by no more than 10% per month to reduce injury risk — this is the "10% rule." Look for a gradual upward trend with occasional down-weeks for recovery. Beginners typically run 20–40km/month, recreational runners 40–80km, serious runners 80–150km+.</div>
+          <div id="monthly-volume" style="display:flex;align-items:flex-end;gap:4px;height:100px;margin-top:8px"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">WEEKLY CONSISTENCY</div>
+            <div id="consistency-avg" style="font-size:11px;color:var(--teal);font-weight:600"></div>
+          </div>
+          <button onclick="toggleExplain('ex-cons')" class="explain-btn" style="margin-bottom:4px">What is this?</button>
+          <div id="ex-cons" class="explain-box" style="display:none">Consistency is the #1 predictor of running improvement — more so than any single workout. Running 3–4 times per week for months beats occasional hard weeks. Benchmarks: Beginner = 2–3 runs/wk · Recreational = 3–4 · Intermediate = 4–5 · Advanced = 5–7. Missing more than one week in a row significantly increases injury risk when returning.</div>
+          <div id="consistency-chart" style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:8px"></div>
+          <div id="consistency-labels" style="display:flex;gap:4px;margin-top:4px"></div>
+          <div id="consistency-benchmark" style="margin-top:10px;font-size:11px;color:var(--text-dim)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FITNESS & LOAD ── -->
+    <div id="apanel-fitness" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+        <!-- CTL -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">FITNESS (CTL)</div>
+            <button onclick="toggleExplain('ex-ctl')" class="explain-btn">How is this calculated?</button>
+          </div>
+          <div id="ex-ctl" class="explain-box" style="display:none">CTL (Chronic Training Load) is a 42-day exponentially weighted average of your daily Training Stress Score. Formula: CTL_today = CTL_yesterday + (TSS_today − CTL_yesterday) / 42. A higher number means you've been consistently training hard over many weeks — it represents your aerobic fitness base. It takes 6–8 weeks to move by 10 points in either direction.</div>
+          <div style="font-size:40px;font-weight:700;color:var(--teal);line-height:1;margin:10px 0 4px" id="ctl-val">—</div>
+          <div id="ctl-benchmark"></div>
+          <div id="ctl-gauge" style="margin-top:12px"></div>
+        </div>
+        <!-- ATL -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">FATIGUE (ATL)</div>
+            <button onclick="toggleExplain('ex-atl')" class="explain-btn">How is this calculated?</button>
+          </div>
+          <div id="ex-atl" class="explain-box" style="display:none">ATL (Acute Training Load) is a 7-day exponentially weighted average — the same formula as CTL but over 7 days instead of 42. It responds quickly to training spikes. After a hard week, ATL jumps up; after rest, it drops within days. A high ATL relative to CTL is normal during training blocks — it means you're pushing harder than your average.</div>
+          <div style="font-size:40px;font-weight:700;color:var(--danger);line-height:1;margin:10px 0 4px" id="atl-val">—</div>
+          <div id="atl-benchmark"></div>
+          <div id="atl-gauge" style="margin-top:12px"></div>
+        </div>
+        <!-- TSB -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">FORM (TSB)</div>
+            <button onclick="toggleExplain('ex-tsb')" class="explain-btn">How is this calculated?</button>
+          </div>
+          <div id="ex-tsb" class="explain-box" style="display:none">TSB (Training Stress Balance) = CTL − ATL. Simple subtraction, but powerful. It tells you whether your fitness currently exceeds your fatigue (positive = fresh) or vice versa (negative = fatigued). Most runners train at TSB −10 to −30. Racing or peaking should happen at TSB +5 to +25. Below −40 is a warning sign for overtraining.</div>
+          <div style="font-size:40px;font-weight:700;color:var(--amber);line-height:1;margin:10px 0 4px" id="tsb-val">—</div>
+          <div id="tsb-benchmark"></div>
+          <div id="tsb-gauge" style="margin-top:12px"></div>
+        </div>
+      </div>
+      <!-- Load chart -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div class="label">TRAINING LOAD HISTORY — 16 WEEKS</div>
+          <button onclick="toggleExplain('ex-load')" class="explain-btn">What am I looking at?</button>
+        </div>
+        <div id="ex-load" class="explain-box" style="display:none">Each pair of bars is one week. The teal bar is your CTL (fitness, slow-moving), the coral bar is your ATL (fatigue, fast-moving). When ATL spikes above CTL you're working harder than your base — this is normal and good in moderation. A widening gap between the two signals you may need a recovery week. Ideally CTL should trend upward over months.</div>
+        <div id="load-chart" style="display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto;margin-top:10px"></div>
+        <div style="display:flex;gap:16px;margin-top:8px">
           <span style="font-size:9px;color:var(--teal);font-weight:600">&#9632; CTL Fitness (42d)</span>
           <span style="font-size:9px;color:var(--danger);font-weight:600">&#9632; ATL Fatigue (7d)</span>
         </div>
       </div>
-
-      <!-- Recovery -->
+      <!-- TRIMP -->
       <div class="card">
-        <div class="label" style="margin-bottom:6px">RECOVERY STATUS</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Derived from your Form score. Positive form = fresh, negative form = some fatigue still present from recent training.</div>
-        <div id="recovery-status" style="font-size:22px;font-weight:700;margin-bottom:6px">—</div>
-        <div style="position:relative;height:16px;background:var(--border);border-radius:8px;margin:10px 0">
-          <div id="recovery-bar" style="height:100%;border-radius:8px;background:var(--amber);transition:width .4s;width:50%"></div>
-          <div id="recovery-dot" style="position:absolute;top:-3px;width:22px;height:22px;border-radius:50%;background:var(--surface);border:2.5px solid var(--amber);left:46%;transform:translateX(-50%)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div class="label">RELATIVE EFFORT PER RUN (TRIMP)</div>
+          <button onclick="toggleExplain('ex-trimp')" class="explain-btn">What is TRIMP?</button>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint);margin-bottom:12px"><span>TIRED</span><span>FRESH</span></div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.6" id="recovery-msg">Sync runs to calculate</div>
-        <div style="font-size:10px;color:var(--text-faint);margin-top:4px" id="recovery-sub"></div>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-          <div class="label" style="margin-bottom:4px">EFFORT DISTRIBUTION</div>
-          <div style="font-size:10px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">Research shows 80% of training should be easy (Zone 1–2) and only 20% hard. This is called the 80/20 rule and is used by elite runners worldwide.</div>
-          <div id="effort-dist"></div>
+        <div id="ex-trimp" class="explain-box" style="display:none">TRIMP (Training Impulse) was developed by Dr. Eric Banister in 1991 and is the science behind Strava's "Relative Effort" and Apple's "Workout Effort." Formula: TRIMP = duration(min) × HR_reserve × 0.64 × e^(1.92 × HR_reserve). When heart rate isn't available we estimate from pace. Benchmarks per run: Easy recovery &lt;30 · Easy aerobic 30–60 · Moderate 60–90 · Hard 90–120 · Very hard &gt;120.</div>
+        <div id="trimp-chart" style="display:flex;align-items:flex-end;gap:3px;height:70px;overflow-x:auto;margin-top:10px"></div>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <span style="font-size:9px;color:var(--teal);font-weight:600">&#9632; Easy</span>
+          <span style="font-size:9px;color:var(--amber);font-weight:600">&#9632; Moderate</span>
+          <span style="font-size:9px;color:var(--danger);font-weight:600">&#9632; Hard</span>
         </div>
       </div>
     </div>
 
-    <!-- Row 2: Pace Zones + Best Efforts + Monthly Volume -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
-      <div class="card">
-        <div class="label" style="margin-bottom:4px">PACE ZONES</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Based on your estimated threshold pace — the pace you could sustain for roughly an hour. SoleSurvivor estimates this from your fastest recent runs. Apple Fitness uses heart rate zones; we use pace zones as a proxy when HR isn't available.</div>
-        <div id="pace-zones"></div>
+    <!-- ── PACING & EFFORTS ── -->
+    <div id="apanel-pacing" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">PACE ZONES</div>
+            <button onclick="toggleExplain('ex-zones')" class="explain-btn">How are zones set?</button>
+          </div>
+          <div id="ex-zones" class="explain-box" style="display:none">Pace zones are calculated from your estimated threshold pace — the fastest pace you could hold for roughly 60 minutes. SoleSurvivor estimates this from your 10th-percentile fastest runs. Zone 1 (recovery) is &gt;140% of threshold pace. Zone 2 (aerobic base) is 120–140%. Zone 3 (tempo) is 106–120%. Zone 4 (threshold) is 100–106%. Zone 5 (VO2 max) is &lt;100%. Apple Watch uses heart rate to assign zones; we use pace as a proxy.</div>
+          <div id="pace-zones" style="margin-top:8px"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="label">BEST EFFORTS</div>
+            <button onclick="toggleExplain('ex-bests')" class="explain-btn">How are these calculated?</button>
+          </div>
+          <div id="ex-bests" class="explain-box" style="display:none">Best efforts are your fastest estimated times over standard race distances, extrapolated from your actual run paces. We find the run with the best average pace and project that over the target distance. This mirrors Strava's Best Efforts feature (which is behind their paywall) and is calculated from your free Strava data. As you log faster runs, these numbers update automatically.</div>
+          <div id="best-efforts" style="margin-top:8px"></div>
+        </div>
       </div>
+      <!-- Benchmark table -->
       <div class="card">
-        <div class="label" style="margin-bottom:4px">BEST EFFORTS</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Fastest estimated time over each distance, extrapolated from your actual run paces. Updates automatically as you log faster runs. These mirror what Strava's Best Efforts feature shows, calculated from free API data.</div>
-        <div id="best-efforts"></div>
-      </div>
-      <div class="card">
-        <div class="label" style="margin-bottom:4px">MONTHLY VOLUME</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Total distance logged per month. Consistent month-on-month growth of 5–10% is the safe build rate recommended by most running coaches to avoid injury.</div>
-        <div id="monthly-volume" style="display:flex;align-items:flex-end;gap:4px;height:100px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div class="label">PACE BENCHMARKS — WHERE DO YOU STAND?</div>
+          <button onclick="toggleExplain('ex-benchmarks')" class="explain-btn">About these benchmarks</button>
+        </div>
+        <div id="ex-benchmarks" class="explain-box" style="display:none">These benchmarks are based on published finishing time distributions for recreational and competitive runners from race result databases and academic studies. "Beginner" = bottom 25%, "Recreational" = 25–60%, "Intermediate" = 60–80%, "Advanced" = 80–95%, "Elite" = top 5%. Age and gender affect these significantly — a 50-year-old recreational runner completing a 5K is performing at a very different physiological level than the raw time suggests. Your estimated VO2 max is calculated from your best mile pace using the Daniels/Gilbert formula.</div>
+        <div id="pace-benchmark-table" style="margin-top:8px;overflow-x:auto"></div>
       </div>
     </div>
 
-    <!-- Row 3: Relative Effort + consistency -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <!-- ── RUN LOG ── -->
+    <div id="apanel-runs" style="display:none">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-          <div class="label">RELATIVE EFFORT (TRIMP)</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="label">RECENT RUNS — TAP FOR FULL BREAKDOWN + MAP</div>
+          <div style="font-size:10px;color:var(--text-faint)" id="analytics-log-sub"></div>
         </div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">TRIMP (Training Impulse) is a heart-rate-weighted effort score per run, developed by Dr. Eric Banister in 1991. Strava calls this "Relative Effort." When HR isn't available we estimate it from pace. Green bars = easy, amber = moderate, red = hard session.</div>
-        <div id="trimp-chart" style="display:flex;align-items:flex-end;gap:3px;height:70px;overflow-x:auto"></div>
-        <div style="font-size:10px;color:var(--text-faint);margin-top:8px">Each bar = one run. Aim for varied effort with easy recovery days between hard sessions.</div>
+        <div id="analytics-run-list"></div>
       </div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div class="label">TRAINING CONSISTENCY</div>
-          <div id="consistency-avg" style="font-size:10px;color:var(--teal);font-weight:600"></div>
-        </div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px;line-height:1.5">Runs per week over the last 12 weeks. Consistency is the single biggest predictor of running improvement — frequency matters more than any individual workout.</div>
-        <div id="consistency-chart" style="display:flex;align-items:flex-end;gap:4px;height:70px"></div>
-        <div id="consistency-labels" style="display:flex;gap:4px;margin-top:4px"></div>
-      </div>
-    </div>
-
-    <!-- Activity log with tappable rows -->
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="label">RECENT RUNS — TAP FOR FULL BREAKDOWN</div>
-        <div style="font-size:10px;color:var(--text-faint)" id="analytics-log-sub"></div>
-      </div>
-      <div id="analytics-run-list"></div>
     </div>
   </div>
 
@@ -1188,135 +1266,137 @@ function calcMonthlyVol(){
   return months;
 }
 
+// ── ANALYTICS SUB-TABS ───────────────────────────────────────────────────────
+let curAnalyticsTab='overview';
+function switchAnalyticsTab(name){
+  curAnalyticsTab=name;
+  ['overview','fitness','pacing','runs'].forEach(t=>{
+    document.getElementById('apanel-'+t).style.display=t===name?'block':'none';
+    document.getElementById('atab-'+t).className='atab'+(t===name?' atab-active':'');
+  });
+}
+function toggleExplain(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ── BENCHMARK GAUGE HELPER ────────────────────────────────────────────────────
+function benchmarkGauge(containerId, value, segments, unit=''){
+  const el=document.getElementById(containerId); if(!el)return;
+  const total=segments.reduce((s,sg)=>s+sg.width,0);
+  let cum=0;
+  const trackHTML=segments.map(sg=>{
+    const w=(sg.width/total*100).toFixed(1);
+    cum+=sg.width/total*100;
+    return`<div class="bm-gauge-seg" style="width:${w}%;background:${sg.color}"></div>`;
+  }).join('');
+  // find where value falls
+  let pos=0,cumW=0;
+  for(const sg of segments){
+    const segW=sg.width/total*100;
+    if(value>=sg.min&&value<=sg.max){pos=cumW+(value-sg.min)/(sg.max-sg.min)*segW;break;}
+    if(value<sg.min){pos=cumW;break;}
+    cumW+=segW;pos=cumW;
+  }
+  pos=Math.max(2,Math.min(98,pos));
+  el.innerHTML=`<div class="bm-gauge"><div class="bm-gauge-track">${trackHTML}</div><div class="bm-gauge-needle" style="left:${pos}%"></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint)">
+    ${segments.map(sg=>`<span>${sg.label}</span>`).join('')}
+  </div>`;
+}
+
+function benchmarkLabel(value, thresholds){
+  for(const t of thresholds){if(value<=t.max)return t;}
+  return thresholds[thresholds.length-1];
+}
+
 // ── RENDER ANALYTICS ────────────────────────────────────────────────────────
 function renderAnalytics(){
   const shoe=activeShoe();
   const sa=shoe?shoeActs(shoe):[];
-
-  // ── Fitness metrics
   const history=calcFitnessMetrics();
   const latest=history[history.length-1]||{ctl:0,atl:0,tsb:0};
-  document.getElementById('ctl-val').textContent=latest.ctl||'—';
-  document.getElementById('atl-val').textContent=latest.atl||'—';
   const tsb=latest.tsb||0;
-  const tsbEl=document.getElementById('tsb-val');
-  tsbEl.textContent=tsb>0?'+'+tsb:tsb;
-  tsbEl.style.color=tsb>5?'var(--teal)':tsb>-10?'var(--amber)':'var(--danger)';
 
-  // ── Load chart
-  const wkLoad=buildWeeklyLoad();
-  const maxLoad=Math.max(...wkLoad.map(w=>Math.max(w.ctl,w.atl)),1);
-  const lc=document.getElementById('load-chart');lc.innerHTML='';
-  lc.style.cssText='display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto';
-  wkLoad.forEach(w=>{
-    const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:flex-end;gap:1px;flex:1;min-width:28px';
-    const ctlH=Math.max(Math.round((w.ctl/maxLoad)*76),2);
-    const atlH=Math.max(Math.round((w.atl/maxLoad)*76),2);
-    wrap.innerHTML=`<div style="flex:1;height:${ctlH}px;background:var(--teal);border-radius:2px 2px 0 0;opacity:.8"></div>
-      <div style="flex:1;height:${atlH}px;background:var(--danger);border-radius:2px 2px 0 0;opacity:.7"></div>`;
-    lc.appendChild(wrap);
-  });
+  // ── Overview headline cards
+  const lastRun=sa.length?Math.round((Date.now()-new Date(sa[sa.length-1]?.start_date||Date.now()))/86400000):null;
+  const weekRuns=sa.filter(a=>{const d=new Date(a.start_date);const now=new Date();return(now-d)<7*86400000;}).length;
+  const totalMi=sa.reduce((s,a)=>s+m2unit(a.distance),0);
+  const avgPaceRuns=sa.filter(a=>a.moving_time>0&&m2unit(a.distance)>0.5);
+  const avgPace=avgPaceRuns.length?avgPaceRuns.reduce((s,a)=>s+a.moving_time/m2unit(a.distance),0)/avgPaceRuns.length:0;
+  const avgPaceStr=avgPace>0?`${Math.floor(avgPace/60)}:${String(Math.round(avgPace%60)).padStart(2,'0')}/${unitLabel()}`:'—';
+  const ovCards=document.getElementById('a-overview-cards');
+  if(ovCards) ovCards.innerHTML=[
+    {l:'TOTAL RUNS',v:sa.length,s:'on active shoe',c:'var(--accent)'},
+    {l:'THIS WEEK',v:weekRuns+' runs',s:lastRun===0?'last run today':lastRun===1?'last run yesterday':`last run ${lastRun??'—'} days ago`,c:'var(--teal)'},
+    {l:'AVG PACE',v:avgPaceStr,s:'across all runs',c:'var(--sky)'},
+    {l:'CTL FITNESS',v:latest.ctl||'—',s:tsb>5?'Fresh & ready':tsb>-10?'Balanced form':'Carrying fatigue',c:tsb>5?'var(--teal)':tsb>-10?'var(--amber)':'var(--danger)'},
+  ].map(c=>`<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden">
+    <div style="font-size:8px;color:var(--text-faint);letter-spacing:1.5px;font-weight:500;margin-bottom:6px">${c.l}</div>
+    <div style="font-size:24px;font-weight:700;color:${c.c};line-height:1;margin-bottom:4px">${c.v}</div>
+    <div style="font-size:10px;color:var(--text-dim)">${c.s}</div>
+  </div>`).join('');
 
   // ── Recovery
-  const tsb2=latest.tsb||0;
-  const lastRun=sa.length?Math.round((Date.now()-new Date(sa[sa.length-1]?.start_date||Date.now()))/86400000):null;
-  const recPct=Math.max(0,Math.min(100,(tsb2+30)/60*100));
-  document.getElementById('recovery-bar').style.width=recPct+'%';
-  document.getElementById('recovery-dot').style.left=`calc(${recPct}% - 11px)`;
+  const recPct=Math.max(0,Math.min(100,(tsb+30)/60*100));
+  ['recovery-bar','recovery-dot'].forEach(id=>{const el=document.getElementById(id);if(!el)return;});
+  const rb=document.getElementById('recovery-bar');
+  const rd=document.getElementById('recovery-dot');
   let recStatus,recColor,recMsg;
-  if(tsb2>10){recStatus='Fresh';recColor='var(--teal)';recMsg='Good time for a quality session or long run.';}
-  else if(tsb2>-5){recStatus='Balanced';recColor='var(--amber)';recMsg='Good form — maintain your training rhythm.';}
-  else if(tsb2>-20){recStatus='Fatigued';recColor='var(--accent)';recMsg='Consider an easy or recovery run today.';}
-  else{recStatus='Very tired';recColor='var(--danger)';recMsg='Rest day recommended. Your body is adapting.';}
-  const recEl=document.getElementById('recovery-status');
-  recEl.textContent=recStatus;recEl.style.color=recColor;
-  document.getElementById('recovery-bar').style.background=recColor;
-  document.getElementById('recovery-dot').style.borderColor=recColor;
-  document.getElementById('recovery-msg').textContent=recMsg;
-  document.getElementById('recovery-sub').textContent=lastRun!==null?`Last run: ${lastRun===0?'today':lastRun===1?'yesterday':lastRun+' days ago'}`:'';
+  if(tsb>10){recStatus='Fresh 🟢';recColor='var(--teal)';recMsg='Your fitness exceeds current fatigue. Good day for a quality workout or long run.';}
+  else if(tsb>-5){recStatus='Balanced 🟡';recColor='var(--amber)';recMsg='Slight fatigue from recent training. Maintain your rhythm — easy to moderate run.';}
+  else if(tsb>-20){recStatus='Fatigued 🟠';recColor='var(--accent)';recMsg='Carrying notable fatigue. Consider an easy shakeout run or full rest day.';}
+  else{recStatus='Very tired 🔴';recColor='var(--danger)';recMsg='Significant accumulated fatigue. Rest is training — your body is adapting right now.';}
+  if(rb){rb.style.width=recPct+'%';rb.style.background=recColor;}
+  if(rd){rd.style.left=`calc(${recPct}% - 11px)`;rd.style.borderColor=recColor;}
+  const rsEl=document.getElementById('recovery-status');if(rsEl){rsEl.textContent=recStatus;rsEl.style.color=recColor;}
+  const rmEl=document.getElementById('recovery-msg');if(rmEl)rmEl.textContent=recMsg;
+  const rrEl=document.getElementById('recovery-sub');if(rrEl)rrEl.textContent=lastRun!==null?`Last run: ${lastRun===0?'today':lastRun===1?'yesterday':lastRun+' days ago'}`:'';
 
   // ── Effort distribution
   const effortCounts={easy:0,moderate:0,hard:0};
   sa.forEach(a=>{ effortCounts[classifyEffort(a)]++; });
   const effortTotal=sa.length||1;
-  const effortData=[
-    {l:'Easy',    v:effortCounts.easy,   c:'var(--teal)'},
+  const easyPct=Math.round(effortCounts.easy/effortTotal*100);
+  const hardPct=Math.round((effortCounts.moderate+effortCounts.hard)/effortTotal*100);
+  const edEl=document.getElementById('effort-dist');
+  if(edEl) edEl.innerHTML=[
+    {l:'Easy',v:effortCounts.easy,c:'var(--teal)'},
     {l:'Moderate',v:effortCounts.moderate,c:'var(--amber)'},
-    {l:'Hard',    v:effortCounts.hard,   c:'var(--danger)'},
-  ];
-  document.getElementById('effort-dist').innerHTML=effortData.map(e=>{
-    const pct=Math.round(e.v/effortTotal*100);
-    return`<div style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:11px;font-weight:600">${e.l}</span>
-        <span style="font-size:11px;color:${e.c};font-weight:600">${pct}%</span>
-      </div>
-      <div style="height:8px;background:var(--border);border-radius:4px">
-        <div style="height:100%;width:${pct}%;background:${e.c};border-radius:4px;transition:width .4s"></div>
-      </div>
-    </div>`;
-  }).join('');
+    {l:'Hard',v:effortCounts.hard,c:'var(--danger)'},
+  ].map(e=>{const pct=Math.round(e.v/effortTotal*100);return`<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+      <span style="font-size:12px;font-weight:600">${e.l}</span>
+      <span style="font-size:12px;color:${e.c};font-weight:700">${pct}%</span>
+    </div>
+    <div style="height:10px;background:var(--border);border-radius:5px">
+      <div style="height:100%;width:${pct}%;background:${e.c};border-radius:5px;transition:width .5s"></div>
+    </div>
+  </div>`;}).join('');
+  const evEl=document.getElementById('effort-verdict');
+  if(evEl){
+    const is8020=easyPct>=75;
+    evEl.style.background=is8020?'var(--teal-bg)':'var(--amber-bg)';
+    evEl.style.borderLeft=`3px solid ${is8020?'var(--teal)':'var(--amber)'}`;
+    evEl.style.color=is8020?'var(--teal)':'var(--amber)';
+    evEl.textContent=is8020?`✓ Good balance — ${easyPct}% easy. Aim for ≥80% easy to follow the 80/20 rule.`:`⚠ ${hardPct}% of runs are moderate/hard. Try adding more easy runs to improve your aerobic base safely.`;
+  }
 
-  // ── Pace zones
-  const zones=getPaceZones();
-  const zPcts=paceZonePcts();
-  const zKeys=['z5','z4','z3','z2','z1'];
-  document.getElementById('pace-zones').innerHTML=zones.map((z,i)=>`
-    <div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:11px;font-weight:600">${z.n}</span>
-        <span style="font-size:10px;color:var(--text-faint)">${z.range}/${unitLabel()}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="flex:1;height:10px;background:var(--border);border-radius:5px">
-          <div style="height:100%;width:${zPcts[zKeys[i]]||0}%;background:${z.c};border-radius:5px;transition:width .4s"></div>
-        </div>
-        <span style="font-size:10px;color:${z.c};font-weight:600;min-width:28px;text-align:right">${zPcts[zKeys[i]]||0}%</span>
-      </div>
-    </div>`).join('');
-
-  // ── Best efforts
-  const bests=calcBestEfforts();
-  document.getElementById('best-efforts').innerHTML=bests.map((b,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:${i<bests.length-1?'1px solid var(--border)':'none'}">
-      <div>
-        <div style="font-size:12px;font-weight:600">${b.n}</div>
-        ${b.date?`<div style="font-size:9px;color:var(--text-faint);margin-top:1px">${b.date}</div>`:''}
-      </div>
-      <div style="font-size:16px;font-weight:700;color:${b.time?'var(--accent)':'var(--text-faint)'}">${b.time||'—'}</div>
-    </div>`).join('');
-
-  // ── Monthly volume
+  // ── Monthly volume (overview)
   const months=calcMonthlyVol();
   const maxMo=Math.max(...months.map(m=>m.mi),1);
-  const mvc=document.getElementById('monthly-volume');mvc.innerHTML='';
-  months.forEach((m,i)=>{
-    const h=Math.max(Math.round((m.mi/maxMo)*92),2);
-    const isLast=i===months.length-1;
-    const col=document.createElement('div');
-    col.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:3px';
-    col.innerHTML=`<div style="font-size:9px;color:${isLast?'var(--accent)':'var(--text-faint)'}">${m.mi>0?fmtD(m.mi):''}</div>
-      <div style="width:100%;height:${h}px;background:${isLast?'var(--accent)':'var(--border)'};border-radius:4px 4px 0 0"></div>
+  const mvc=document.getElementById('monthly-volume');
+  if(mvc){mvc.innerHTML='';months.forEach((m,i)=>{
+    const h=Math.max(Math.round((m.mi/maxMo)*92),2),isLast=i===months.length-1;
+    const col=document.createElement('div');col.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:3px';
+    col.innerHTML=`<div style="font-size:9px;color:${isLast?'var(--accent)':'var(--text-faint)'};font-weight:${isLast?'700':'400'}">${m.mi>0?fmtD(m.mi):''}</div>
+      <div style="width:100%;height:${h}px;background:${isLast?'var(--accent)':m.mi>0?'rgba(255,124,92,.35)':'var(--border)'};border-radius:4px 4px 0 0"></div>
       <div style="font-size:9px;color:var(--text-faint)">${m.lbl}</div>`;
     mvc.appendChild(col);
-  });
+  });}
 
-  // ── TRIMP sparkline — pixel heights
-  const recentRuns=sa.slice().sort((a,b)=>new Date(a.start_date)-new Date(b.start_date)).slice(-28);
-  const trimpVals=recentRuns.map(a=>calcTRIMP(a));
-  const maxTrimp=Math.max(...trimpVals,1);
-  const tc=document.getElementById('trimp-chart');tc.innerHTML='';
-  recentRuns.forEach((a,i)=>{
-    const trimp=trimpVals[i];
-    const h=Math.max(Math.round((trimp/maxTrimp)*66),3);
-    const col=trimp>maxTrimp*.7?'var(--danger)':trimp>maxTrimp*.4?'var(--amber)':'var(--teal)';
-    const b=document.createElement('div');
-    b.style.cssText=`flex:1;min-width:10px;height:${h}px;background:${col};border-radius:2px 2px 0 0;cursor:pointer;align-self:flex-end`;
-    b.title=`${a.name} · TRIMP ${trimp}`;
-    tc.appendChild(b);
-  });
-
-  // ── Consistency chart — pixel heights
+  // ── Consistency
   const weekCounts=[];
   for(let i=11;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i*7);
@@ -1326,41 +1406,188 @@ function renderAnalytics(){
     weekCounts.push({lbl:`W${12-i}`,cnt});
   }
   const maxCnt=Math.max(...weekCounts.map(w=>w.cnt),1);
-  const avg=(weekCounts.reduce((s,w)=>s+w.cnt,0)/weekCounts.length).toFixed(1);
-  document.getElementById('consistency-avg').textContent=`Avg: ${avg} runs/wk`;
-  const cc=document.getElementById('consistency-chart');cc.innerHTML='';
-  const cl=document.getElementById('consistency-labels');cl.innerHTML='';
-  weekCounts.forEach((w,i)=>{
-    const h=Math.max(Math.round((w.cnt/maxCnt)*66),w.cnt>0?4:2);
-    const isLast=i===weekCounts.length-1;
+  const avgC=(weekCounts.reduce((s,w)=>s+w.cnt,0)/weekCounts.length).toFixed(1);
+  const caEl=document.getElementById('consistency-avg');if(caEl)caEl.textContent=`Avg: ${avgC} runs/wk`;
+  const cc=document.getElementById('consistency-chart');
+  const cl=document.getElementById('consistency-labels');
+  if(cc){cc.innerHTML='';weekCounts.forEach((w,i)=>{
+    const h=Math.max(Math.round((w.cnt/maxCnt)*66),w.cnt>0?4:2),isLast=i===weekCounts.length-1;
     const b=document.createElement('div');
     b.style.cssText=`flex:1;height:${h}px;background:${isLast?'var(--accent)':w.cnt>0?'rgba(255,124,92,.4)':'var(--border)'};border-radius:2px 2px 0 0;align-self:flex-end`;
     cc.appendChild(b);
-    const lbl=document.createElement('div');
-    lbl.style.cssText='flex:1;font-size:8px;color:var(--text-faint);text-align:center';
-    lbl.textContent=i%3===0?w.lbl:'';
-    cl.appendChild(lbl);
-  });
+  });}
+  if(cl){cl.innerHTML='';weekCounts.forEach((w,i)=>{
+    const l=document.createElement('div');l.style.cssText='flex:1;font-size:8px;color:var(--text-faint);text-align:center';
+    l.textContent=i%3===0?w.lbl:'';cl.appendChild(l);
+  });}
+  const cbEl=document.getElementById('consistency-benchmark');
+  if(cbEl){const av=parseFloat(avgC);const bm=av>=5?'Advanced (5+ runs/wk)':av>=4?'Intermediate (4–5 runs/wk)':av>=3?'Recreational (3–4 runs/wk)':'Beginner (2–3 runs/wk)';cbEl.textContent=`Your level: ${bm}`;}
 
-  // ── Run list with analytics
-  document.getElementById('analytics-log-sub').textContent=`${sa.length} runs analysed`;
+  // ── CTL benchmark + gauge
+  const ctlEl=document.getElementById('ctl-val');if(ctlEl)ctlEl.textContent=latest.ctl||'—';
+  const ctlBm=benchmarkLabel(latest.ctl,[
+    {max:20,label:'New runner',color:'var(--sky)',bg:'var(--sky-bg)',desc:'Just starting out — building your aerobic base. Focus on consistency.'},
+    {max:40,label:'Recreational',color:'var(--teal)',bg:'var(--teal-bg)',desc:'Comfortable base for regular running. Most 5K/10K runners sit here.'},
+    {max:65,label:'Club runner',color:'var(--amber)',bg:'var(--amber-bg)',desc:'Strong aerobic base. Capable of half marathon or solid 10K performance.'},
+    {max:90,label:'Serious athlete',color:'var(--accent)',bg:'rgba(255,124,92,.1)',desc:'High fitness base. Training for marathon or competitive performance.'},
+    {max:200,label:'Elite',color:'var(--danger)',bg:'rgba(248,113,113,.1)',desc:'Professional-level training load. Very few recreational runners reach this.'},
+  ]);
+  const ctlBmEl=document.getElementById('ctl-benchmark');
+  if(ctlBmEl)ctlBmEl.innerHTML=`<span class="bm-label" style="background:${ctlBm.bg};color:${ctlBm.color}">${ctlBm.label}</span><div style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.5">${ctlBm.desc}</div>`;
+  benchmarkGauge('ctl-gauge',latest.ctl,[
+    {min:0,max:20,width:20,color:'var(--sky)',label:'New'},
+    {min:20,max:40,width:20,color:'var(--teal)',label:'Rec'},
+    {min:40,max:65,width:25,color:'var(--amber)',label:'Club'},
+    {min:65,max:90,width:25,color:'var(--accent)',label:'Serious'},
+    {min:90,max:120,width:30,color:'var(--danger)',label:'Elite'},
+  ]);
+
+  // ── ATL benchmark + gauge
+  const atlEl=document.getElementById('atl-val');if(atlEl)atlEl.textContent=latest.atl||'—';
+  const atlBm=benchmarkLabel(latest.atl,[
+    {max:15,label:'Very low',color:'var(--sky)',bg:'var(--sky-bg)',desc:'Minimal recent training. Your body is well rested but fitness may be declining.'},
+    {max:35,label:'Low–normal',color:'var(--teal)',bg:'var(--teal-bg)',desc:'Light recent training. Good for a recovery week or return after a break.'},
+    {max:55,label:'Normal',color:'var(--amber)',bg:'var(--amber-bg)',desc:'Moderate recent load. Typical mid-training block. Some fatigue is expected.'},
+    {max:75,label:'High',color:'var(--accent)',bg:'rgba(255,124,92,.1)',desc:'Heavy recent load. Common in peak training weeks. Prioritise sleep and nutrition.'},
+    {max:200,label:'Very high',color:'var(--danger)',bg:'rgba(248,113,113,.1)',desc:'Extreme recent load. Risk of overtraining if sustained. Rest or easy runs advised.'},
+  ]);
+  const atlBmEl=document.getElementById('atl-benchmark');
+  if(atlBmEl)atlBmEl.innerHTML=`<span class="bm-label" style="background:${atlBm.bg};color:${atlBm.color}">${atlBm.label}</span><div style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.5">${atlBm.desc}</div>`;
+  benchmarkGauge('atl-gauge',latest.atl,[
+    {min:0,max:15,width:15,color:'var(--sky)',label:'V.low'},
+    {min:15,max:35,width:20,color:'var(--teal)',label:'Low'},
+    {min:35,max:55,width:20,color:'var(--amber)',label:'Normal'},
+    {min:55,max:75,width:20,color:'var(--accent)',label:'High'},
+    {min:75,max:100,width:25,color:'var(--danger)',label:'V.high'},
+  ]);
+
+  // ── TSB benchmark + gauge
+  const tsbEl2=document.getElementById('tsb-val');if(tsbEl2){tsbEl2.textContent=tsb>0?'+'+tsb:tsb;tsbEl2.style.color=tsb>5?'var(--teal)':tsb>-10?'var(--amber)':'var(--danger)';}
+  const tsbBm=benchmarkLabel(tsb+50,[// offset so -50..+50 maps to 0..100
+    {max:20,label:'Overtrained',color:'var(--danger)',bg:'rgba(248,113,113,.1)',desc:'TSB below -30. Significant overreach. Take a full rest week before resuming normal training.'},
+    {max:35,label:'Very fatigued',color:'var(--accent)',bg:'rgba(255,124,92,.1)',desc:'TSB -30 to -15. Heavy training block. Normal before a planned recovery week.'},
+    {max:50,label:'Training',color:'var(--amber)',bg:'var(--amber-bg)',desc:'TSB -15 to 0. Standard training fatigue. The sweet spot for building fitness.'},
+    {max:65,label:'Fresh',color:'var(--teal)',bg:'var(--teal-bg)',desc:'TSB 0 to +15. Well rested. Good for a workout or race in the next 1–3 days.'},
+    {max:100,label:'Peaked',color:'var(--sky)',bg:'var(--sky-bg)',desc:'TSB above +15. Peak freshness — ideal for racing. Fitness may start declining soon if you rest too long.'},
+  ]);
+  const tsbBmEl=document.getElementById('tsb-benchmark');
+  if(tsbBmEl)tsbBmEl.innerHTML=`<span class="bm-label" style="background:${tsbBm.bg};color:${tsbBm.color}">${tsbBm.label}</span><div style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.5">${tsbBm.desc}</div>`;
+  benchmarkGauge('tsb-gauge',tsb+50,[
+    {min:0,max:20,width:20,color:'var(--danger)',label:'Overtrained'},
+    {min:20,max:35,width:15,color:'var(--accent)',label:'V.fatigued'},
+    {min:35,max:50,width:15,color:'var(--amber)',label:'Training'},
+    {min:50,max:65,width:15,color:'var(--teal)',label:'Fresh'},
+    {min:65,max:100,width:35,color:'var(--sky)',label:'Peaked'},
+  ]);
+
+  // ── Load chart
+  const wkLoad=buildWeeklyLoad();
+  const maxLoad=Math.max(...wkLoad.map(w=>Math.max(w.ctl,w.atl)),1);
+  const lc=document.getElementById('load-chart');
+  if(lc){lc.innerHTML='';lc.style.cssText='display:flex;align-items:flex-end;gap:3px;height:80px;overflow-x:auto';
+  wkLoad.forEach(w=>{
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:flex-end;gap:1px;flex:1;min-width:28px';
+    const ctlH=Math.max(Math.round((w.ctl/maxLoad)*76),2);
+    const atlH=Math.max(Math.round((w.atl/maxLoad)*76),2);
+    wrap.innerHTML=`<div style="flex:1;height:${ctlH}px;background:var(--teal);border-radius:2px 2px 0 0;opacity:.8"></div>
+      <div style="flex:1;height:${atlH}px;background:var(--danger);border-radius:2px 2px 0 0;opacity:.7"></div>`;
+    lc.appendChild(wrap);
+  });}
+
+  // ── TRIMP
+  const recentRuns=sa.slice().sort((a,b)=>new Date(a.start_date)-new Date(b.start_date)).slice(-28);
+  const trimpVals=recentRuns.map(a=>calcTRIMP(a));
+  const maxTrimp=Math.max(...trimpVals,1);
+  const tc=document.getElementById('trimp-chart');
+  if(tc){tc.innerHTML='';recentRuns.forEach((a,i)=>{
+    const trimp=trimpVals[i],h=Math.max(Math.round((trimp/maxTrimp)*66),3);
+    const col=trimp>maxTrimp*.7?'var(--danger)':trimp>maxTrimp*.4?'var(--amber)':'var(--teal)';
+    const b=document.createElement('div');
+    b.style.cssText=`flex:1;min-width:10px;height:${h}px;background:${col};border-radius:2px 2px 0 0;cursor:pointer;align-self:flex-end`;
+    b.title=`${a.name} · TRIMP ${trimp}`;tc.appendChild(b);
+  });}
+
+  // ── Pace zones (pacing tab)
+  const zones=getPaceZones(),zPcts=paceZonePcts(),zKeys=['z5','z4','z3','z2','z1'];
+  const pzEl=document.getElementById('pace-zones');
+  if(pzEl)pzEl.innerHTML=zones.map((z,i)=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600">${z.n}</span>
+        <span style="font-size:10px;color:var(--text-faint)">${z.range}/${unitLabel()}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;height:12px;background:var(--border);border-radius:6px;overflow:hidden">
+          <div style="height:100%;width:${zPcts[zKeys[i]]||0}%;background:${z.c};border-radius:6px;transition:width .5s"></div>
+        </div>
+        <span style="font-size:11px;color:${z.c};font-weight:700;min-width:32px;text-align:right">${zPcts[zKeys[i]]||0}%</span>
+      </div>
+    </div>`).join('');
+
+  // ── Best efforts (pacing tab)
+  const bests=calcBestEfforts();
+  const beEl=document.getElementById('best-efforts');
+  if(beEl)beEl.innerHTML=bests.map((b,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:${i<bests.length-1?'1px solid var(--border)':'none'}">
+      <div>
+        <div style="font-size:13px;font-weight:600">${b.n}</div>
+        ${b.date?`<div style="font-size:10px;color:var(--text-faint);margin-top:1px">${b.date}</div>`:''}
+      </div>
+      <div style="font-size:18px;font-weight:700;color:${b.time?'var(--accent)':'var(--text-faint)'}">${b.time||'—'}</div>
+    </div>`).join('');
+
+  // ── Pace benchmark table (pacing tab)
+  const threshPace=getThresholdPace();
+  const estVO2=threshPace>0?Math.round((-4.6+0.182258*(60/threshPace*1.60934)+0.000104*(60/threshPace*1.60934)**2)/0.8836):null;
+  // standard VO2 max categories (ACSM)
+  const vo2Segs=[
+    {min:0,max:24,width:24,color:'#f87171',label:'Poor'},
+    {min:24,max:34,width:10,color:'#fb923c',label:'Fair'},
+    {min:34,max:42,width:8,color:'#fbbf24',label:'Average'},
+    {min:42,max:52,width:10,color:'#86efac',label:'Good'},
+    {min:52,max:62,width:10,color:'#34d399',label:'Excellent'},
+    {min:62,max:80,width:18,color:'#2dd4bf',label:'Superior'},
+  ];
+  const vo2Bm=vo2Segs.find(s=>estVO2>=s.min&&estVO2<s.max)||vo2Segs[0];
+  const pbEl=document.getElementById('pace-benchmark-table');
+  if(pbEl)pbEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Estimated VO₂ max from your best mile effort:</div>
+        <div style="font-size:36px;font-weight:700;color:var(--accent);margin-bottom:4px">${estVO2||'—'} <span style="font-size:16px;font-weight:400;color:var(--text-faint)">ml/kg/min</span></div>
+        <span class="bm-label" style="background:${vo2Bm.color}22;color:${vo2Bm.color};margin-bottom:8px">${vo2Bm.label}</span>
+        <div id="vo2-gauge" style="margin-top:8px"></div>
+        <div style="font-size:10px;color:var(--text-faint);margin-top:6px;line-height:1.6">Based on ACSM standards for women aged 20–29. VO₂ max = maximum oxygen your body can use per minute per kg of body weight. It's the gold standard measure of aerobic fitness used by Apple Watch and Garmin.</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text-faint);margin-bottom:10px">VO₂ max reference ranges (ACSM — women 20-29):</div>
+        ${vo2Segs.map(s=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <div style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+          <div style="flex:1;font-size:11px;font-weight:600">${s.label}</div>
+          <div style="font-size:11px;color:var(--text-faint)">${s.min}–${s.max} ml/kg/min</div>
+          ${estVO2>=s.min&&estVO2<s.max?`<span style="font-size:9px;background:${s.color}22;color:${s.color};padding:1px 7px;border-radius:8px;font-weight:700">YOU</span>`:''}
+        </div>`).join('')}
+      </div>
+    </div>`;
+  if(estVO2) setTimeout(()=>benchmarkGauge('vo2-gauge',estVO2,vo2Segs),10);
+
+  // ── Run log (runs tab)
+  const rls=document.getElementById('analytics-log-sub');if(rls)rls.textContent=`${sa.length} runs`;
   const recent=sa.slice().sort((a,b)=>new Date(b.start_date)-new Date(a.start_date)).slice(0,20);
-  document.getElementById('analytics-run-list').innerHTML=recent.length===0
+  const rll=document.getElementById('analytics-run-list');
+  if(rll)rll.innerHTML=recent.length===0
     ?'<div style="color:var(--text-faint);text-align:center;padding:32px;font-size:13px">Sync Strava to see run analytics</div>'
     :recent.map(a=>{
-      const dist=m2unit(a.distance);
-      const trimp=calcTRIMP(a);
-      const effort=classifyEffort(a);
+      const dist=m2unit(a.distance),trimp=calcTRIMP(a),effort=classifyEffort(a);
       const effortC=effort==='hard'?'var(--danger)':effort==='moderate'?'var(--amber)':'var(--teal)';
-      const pace=a.moving_time&&dist>0?formatPace(a):'';
-      const hr=a.average_heartrate?`${Math.round(a.average_heartrate)} bpm`:'';
+      const pace=a.moving_time&&dist>0?formatPace(a):'',hr=a.average_heartrate?`${Math.round(a.average_heartrate)} bpm`:'';
       return`<div onclick="showRunDetail('${a.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;border-radius:4px" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
         <div>
           <div style="font-size:13px;font-weight:600">${a.name}</div>
           <div style="display:flex;gap:10px;margin-top:3px;flex-wrap:wrap">
             <span style="font-size:10px;color:var(--text-faint)">${a.start_date.slice(0,10)}</span>
             ${pace?`<span style="font-size:10px;color:var(--text-dim)">${pace}</span>`:''}
-            ${hr?`<span style="font-size:10px;color:var(--danger)">&#9829; ${hr}</span>`:''}
+            ${hr?`<span style="font-size:10px;color:var(--danger)">♥ ${hr}</span>`:''}
             <span style="font-size:9px;font-weight:600;color:${effortC};background:${effortC}22;padding:1px 7px;border-radius:10px">${effort.toUpperCase()}</span>
           </div>
         </div>
@@ -1368,10 +1595,11 @@ function renderAnalytics(){
           <div style="font-size:18px;font-weight:700;color:var(--accent)">${fmtD(dist)} ${unitLabel()}</div>
           <div style="font-size:10px;color:var(--text-faint)">TRIMP ${trimp}</div>
         </div>
-        <div style="color:var(--text-faint);margin-left:10px;font-size:14px">&#8250;</div>
+        <div style="color:var(--text-faint);margin-left:10px;font-size:14px">›</div>
       </div>`;
     }).join('');
 }
+
 
 // ── RUN DETAIL VIEW ──────────────────────────────────────────────────────────
 
